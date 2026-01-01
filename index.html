@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hermès Messenger</title>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+
+    #sidebar {
+      width: 200px;
+      background: #1f1f1f;
+      padding: 10px;
+      box-sizing: border-box;
+      border-right: 1px solid #333;
+    }
+
+    #sidebar h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    #userList {
+      list-style: none;
+      padding: 0;
+    }
+
+    #userList li {
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 20px 0 10px;
+      font-size: 24px;
+    }
+
+    #connectedCount {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 14px;
+      color: #bbb;
+    }
+
+    #chat-container {
+      background: #1e1e1e;
+      width: 90%;
+      max-width: 500px;
+      flex: 1;
+      margin: 10px 0;
+ border-radius: 10px;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .msg {
+      background: #333;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin: 5px 0;
+      align-self: flex-start;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    #form {
+      display: flex;
+      width: 90%;
+      max-width: 500px;
+      margin-bottom: 20px;
+    }
+
+    #message {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px 0 0 5px;
+      font-size: 16px;
+    }
+
+    #sendBtn {
+      background: #444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <h3>Utilisateurs</h3>
+    <ul id="userList"></ul>
+  </div>
+
+  <div id="main">
+    <div id="connectedCount">Connectés : 0</div>
+    <h1>Hermès Messenger</h1>
+    <div id="chat-container"></div>
+
+    <form id="form" onsubmit="sendMessage(event)">
+      <input type="text" id="message" placeholder="Votre message..." autocomplete="off" />
+      <button type="submit" id="sendBtn">Envoyer</button>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+ const chatContainer = document.getElementById('chat-container');
+    const messageInput = document.getElementById('message');
+    const connectedCount = document.getElementById('connectedCount');
+    const userList = document.getElementById('userList');
+
+    let pseudo = prompt("Entrez votre pseudo :");
+    if (!pseudo) pseudo = "Anonyme";
+    socket.emit("join", pseudo);
+
+    function sendMessage(e) {
+      e.preventDefault();
+      const msg = messageInput.value.trim();
+      if (msg) {
+        socket.emit("chat message", msg);
+        addMessage("Moi : " + msg);
+        messageInput.value = '';
+      }
+    }
+
+    function addMessage(text) {
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.textContent = text;
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    socket.on("chat message", data => {
+      addMessage(data.pseudo + " : " + data.message);
+    });
+
+    socket.on("update users", data => {
+      connectedCount.textContent = "Connectés : " + data.count;
+      userList.innerHTML = "";
+      data.users.forEach(p => {
+        const li = document.createElement("li");
+        li.textContent = p;
+        userList.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>

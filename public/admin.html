@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Hermès Messenger - Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family:Arial,sans-serif; background:#1a1d27; color:#eaeaea; margin:0; padding:20px; }
+h1 { color:#4da3ff; text-align:center; margin-bottom:20px; }
+section { margin-bottom:25px; }
+h2 { color:#4da3ff; margin-bottom:10px; }
+.user { display:flex; justify-content:space-between; align-items:center; padding:8px; background:#252836; margin-bottom:5px; border-radius:6px; }
+.stats { background:#252836; padding:10px; border-radius:6px; }
+@media(max-width:800px){
+    .user { flex-direction: column; align-items:flex-start; }
+}
+</style>
+</head>
+<body>
+
+<h1>Hermès Messenger - Admin</h1>
+
+<section>
+    <h2>Utilisateurs connectés</h2>
+    <div id="connectedUsers"></div>
+</section>
+
+<section>
+    <h2>Statistiques du jour</h2>
+    <div class="stats">
+        Messages envoyés : <span id="msgCount">0</span><br>
+        Utilisateurs connectés : <span id="usersCount">0</span>
+    </div>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let msgTotal = 0;
+
+// Liste des utilisateurs connectés
+socket.on("users", list=>{
+    const div=document.getElementById("connectedUsers");
+    div.innerHTML="";
+    list.forEach(u=>{
+        const d=document.createElement("div");
+        d.className="user";
+        d.textContent=u;
+        div.appendChild(d);
+    });
+    document.getElementById("usersCount").textContent=list.length;
+});
+
+// Statistiques messages
+socket.on("message", data=>{
+    msgTotal++;
+    document.getElementById("msgCount").textContent = msgTotal;
+});
+</script>
+
+</body>
+</html>

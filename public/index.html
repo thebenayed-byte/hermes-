@@ -1,172 +1,198 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Hermès Messenger</title>
-  <style>
-    body {
-      background: #121212;
-      color: white;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      height: 100vh;
-    }
-
-    #sidebar {
-      width: 200px;
-      background: #1f1f1f;
-      padding: 10px;
-      box-sizing: border-box;
-      border-right: 1px solid #333;
-    }
-
-    #sidebar h3 {
-      margin-top: 0;
-      font-size: 18px;
-    }
-
-    #userList {
-      list-style: none;
-      padding: 0;
-    }
-
-    #userList li {
-      margin-bottom: 5px;
-      font-size: 14px;
-      color: #ccc;
-    }
-
-    #main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    h1 {
-      margin: 20px 0 10px;
-      font-size: 24px;
-    }
-
-    #connectedCount {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-size: 14px;
-      color: #bbb;
-    }
-
-    #chat-container {
-      background: #1e1e1e;
-      width: 90%;
-      max-width: 500px;
-      flex: 1;
-      margin: 10px 0;
- border-radius: 10px;
-      padding: 10px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .msg {
-      background: #333;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin: 5px 0;
-      align-self: flex-start;
-      max-width: 80%;
-      word-wrap: break-word;
-    }
-
-    #form {
-      display: flex;
-      width: 90%;
-      max-width: 500px;
-      margin-bottom: 20px;
-    }
-
-    #message {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 5px 0 0 5px;
-      font-size: 16px;
-    }
-
-    #sendBtn {
-      background: #444;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 0 5px 5px 0;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Hermès Messenger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --bg:#1a1d27;
+    --panel:#252836;
+    --accent:#4da3ff;
+    --text:#eaeaea;
+    --muted:#888;
+}
+* { box-sizing:border-box; font-family:Arial,sans-serif; margin:0; padding:0; }
+body { background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; }
+header { background:#151823; padding:15px; text-align:center; border-bottom:1px solid #333; }
+header h1 { color:var(--accent); }
+.login { max-width:400px; margin:80px auto; background:var(--panel); padding:25px; border-radius:12px; text-align:center; }
+.login input { width:100%; padding:12px; margin-top:10px; border-radius:8px; border:none; background:#0f1218; color:var(--text); }
+.login button { width:100%; margin-top:10px; padding:12px; border-radius:8px; border:none; background:var(--accent); font-weight:bold; cursor:pointer; }
+.app { display:flex; flex:1; height:calc(100vh - 60px); }
+.users { width:220px; background:var(--panel); padding:15px; border-right:1px solid #222; overflow-y:auto; }
+.users h3 { color:var(--accent); margin-bottom:10px; }
+.user { padding:10px; border-radius:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+.user:hover { background:#222; }
+.user.active { background:var(--accent); color:#000; }
+.badge { background:#ff4d4d; color:#fff; border-radius:12px; padding:2px 6px; font-size:12px; display:none; }
+.chat-box { flex:1; display:flex; flex-direction:column; margin:0 10px; background:var(--panel); border-radius:8px; overflow:hidden; }
+.chat-header { padding:10px; background:#12151c; border-bottom:1px solid #222; }
+.chat-title { color:var(--accent); font-weight:bold; }
+.messages { flex:1; padding:10px; overflow-y:auto; }
+.message { margin-bottom:8px; }
+.message strong { color:var(--accent); }
+.chat-input { display:flex; border-top:1px solid #222; }
+.chat-input input { flex:1; padding:10px; border:none; border-radius:0; background:#0f1218; color:var(--text); }
+.chat-input button { padding:10px 15px; border:none; background:var(--accent); font-weight:bold; cursor:pointer; }
+.private-chat { width:250px; display:flex; flex-direction:column; background:var(--panel); border-left:1px solid #222; border-radius:8px; overflow:hidden; }
+@media(max-width:800px){
+    .app { flex-direction:column; }
+    .users { width:100%; display:flex; overflow-x:auto; border-right:none; border-bottom:1px solid #222; }
+    .chat-box { margin:0; margin-top:5px; width:100%; }
+    .private-chat { width:100%; margin-top:5px; border-left:none; border-top:1px solid #222; }
+    .users .user { flex:0 0 auto; margin-right:10px; }
+}
+</style>
 </head>
 <body>
 
-  <div id="sidebar">
-    <h3>Utilisateurs</h3>
-    <ul id="userList"></ul>
-  </div>
-
-  <div id="main">
-    <div id="connectedCount">Connectés : 0</div>
+<header>
     <h1>Hermès Messenger</h1>
-    <div id="chat-container"></div>
+</header>
 
-    <form id="form" onsubmit="sendMessage(event)">
-      <input type="text" id="message" placeholder="Votre message..." autocomplete="off" />
-      <button type="submit" id="sendBtn">Envoyer</button>
-    </form>
-  </div>
+<div class="login" id="login">
+    <h2>Connexion</h2>
+    <input id="pseudo" placeholder="Votre pseudo">
+    <input id="number" placeholder="Votre numéro de téléphone">
+    <button onclick="requestAccess()">Se connecter</button>
+</div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
- const chatContainer = document.getElementById('chat-container');
-    const messageInput = document.getElementById('message');
-    const connectedCount = document.getElementById('connectedCount');
-    const userList = document.getElementById('userList');
+<div class="app" id="app" style="display:none">
+    <div class="users">
+        <div class="user active" onclick="selectChat('group')">
+            💬 Groupe
+            <span class="badge"></span>
+        </div>
+        <div id="userList"></div>
+    </div>
+    <div class="chat-box">
+        <div class="chat-header">
+            <span class="chat-title" id="chatTitle">Groupe général</span>
+        </div>
+        <div class="messages" id="messages"></div>
+        <div class="chat-input">
+            <input id="messageInput" placeholder="Écrire un message...">
+            <button onclick="sendMessage()">Envoyer</button>
+        </div>
+    </div>
+    <div class="private-chat">
+        <div class="chat-header">
+            <span class="chat-title" id="privateTitle">Messages privés</span>
+        </div>
+        <div class="messages" id="privateMessages"></div>
+    </div>
+</div>
 
-    let pseudo = prompt("Entrez votre pseudo :");
-    if (!pseudo) pseudo = "Anonyme";
-    socket.emit("join", pseudo);
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let currentUser = "";
+let currentChat = "group";
+let messages = { group: [] };
+let privateMessages = {};
+let unread = { group:0 };
 
-    function sendMessage(e) {
-      e.preventDefault();
-      const msg = messageInput.value.trim();
-      if (msg) {
-        socket.emit("chat message", msg);
-        addMessage("Moi : " + msg);
-        messageInput.value = '';
-      }
+// Son notification
+let soundAllowed = false;
+document.body.addEventListener('click', ()=>soundAllowed=true);
+document.getElementById('messageInput').addEventListener('focus', ()=>soundAllowed=true);
+function playNotification(){
+    if(!soundAllowed) return;
+    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
+    audio.play().catch(e=>console.log("Impossible de jouer le son:", e));
+}
+
+// Connexion directe
+function requestAccess() {
+    const pseudo = document.getElementById("pseudo").value.trim();
+    const number = document.getElementById("number").value.trim();
+    if (!pseudo || !number) return alert("Pseudo et numéro requis");
+    currentUser = pseudo;
+    socket.emit("requestAccess", { pseudo, number });
+}
+
+// Utilisateur accepté immédiatement
+socket.on("userAccepted", user => {
+    if(user.pseudo===currentUser){
+        socket.emit("login",user.pseudo);
+        document.getElementById("login").style.display="none";
+        document.getElementById("app").style.display="flex";
     }
+});
 
-    function addMessage(text) {
-      const div = document.createElement('div');
-      div.className = 'msg';
-      div.textContent = text;
-      chatContainer.appendChild(div);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    socket.on("chat message", data => {
-      addMessage(data.pseudo + " : " + data.message);
+// Liste utilisateurs
+socket.on("users", users=>{
+    const list=document.getElementById("userList");
+    list.innerHTML="";
+    users.forEach(u=>{
+        if(u!==currentUser){
+            if(!unread[u]) unread[u]=0;
+            if(!privateMessages[u]) privateMessages[u]=[];
+            const div=document.createElement("div");
+            div.className="user";
+            div.onclick=()=>selectChat(u);
+            div.innerHTML=`<span class="name">${u}</span><span class="badge">${unread[u]||''}</span>`;
+            list.appendChild(div);
+        }
     });
+});
 
-    socket.on("update users", data => {
-      connectedCount.textContent = "Connectés : " + data.count;
-      userList.innerHTML = "";
-      data.users.forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = p;
-        userList.appendChild(li);
-      });
+// Réception messages
+socket.on("message", data=>{
+    let chatKey;
+    if(!data.to) { chatKey="group"; messages[chatKey].push(data); }
+    else { chatKey = data.user===currentUser ? data.to : data.user; if(!privateMessages[chatKey]) privateMessages[chatKey]=[]; privateMessages[chatKey].push(data); }
+
+    playNotification();
+
+    if(!unread[chatKey]) unread[chatKey]=0;
+    if(currentChat!==chatKey) unread[chatKey]++;
+    else unread[chatKey]=0;
+
+    renderMessages();
+});
+
+// Affichage messages
+function renderMessages(){
+    const box=document.getElementById("messages");
+    box.innerHTML="";
+    messages.group.forEach(m=>{
+        const div=document.createElement("div");
+        div.className="message";
+        div.innerHTML=`<strong>${m.user}</strong>: ${m.text}`;
+        box.appendChild(div);
     });
-  </script>
+    box.scrollTop=box.scrollHeight;
+
+    const pBox=document.getElementById("privateMessages");
+    pBox.innerHTML="";
+    Object.keys(privateMessages).forEach(u=>{
+        privateMessages[u].forEach(m=>{
+            const div=document.createElement("div");
+            div.className="message";
+            div.innerHTML=`<strong>${m.user}</strong> à <strong>${m.to}</strong>: ${m.text}`;
+            pBox.appendChild(div);
+        });
+    });
+    pBox.scrollTop=pBox.scrollHeight;
+}
+
+// Envoi message
+function sendMessage(){
+    const input=document.getElementById("messageInput");
+    if(!input.value.trim()) return;
+    socket.emit("message", { user:currentUser, text:input.value, to:currentChat==="group"?null:currentChat });
+    input.value="";
+}
+
+// Sélection chat
+function selectChat(chat){
+    currentChat=chat;
+    unread[chat]=0;
+    renderMessages();
+}
+</script>
+
 </body>
 </html>

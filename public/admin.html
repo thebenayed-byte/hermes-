@@ -2,60 +2,98 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Hermès Messenger - Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Hermès Messenger</title>
+<script src="/socket.io/socket.io.js"></script>
 <style>
-body { font-family:Arial,sans-serif; background:#1a1d27; color:#eaeaea; margin:0; padding:20px; }
-h1 { color:#4da3ff; text-align:center; margin-bottom:20px; }
-section { margin-bottom:25px; }
-h2 { color:#4da3ff; margin-bottom:10px; }
-.user { display:flex; justify-content:space-between; align-items:center; padding:8px; background:#252836; margin-bottom:5px; border-radius:6px; }
-.stats { background:#252836; padding:10px; border-radius:6px; }
-@media(max-width:800px){
-    .user { flex-direction: column; align-items:flex-start; }
-}
+body { font-family:Arial; background:#121212; color:#eee; margin:0; padding:20px; }
+h1,h3 { color:#ff3b3b; }
+#usersList { margin-top:10px; display:flex; flex-direction:column; gap:5px; max-height:300px; overflow-y:auto; }
+.userItem { display:flex; justify-content:space-between; align-items:center; padding:8px; background:#1e1e1e; border-radius:5px; }
+.userItem span { font-weight:bold; }
+.userItem button { background:red; color:#fff; border:none; border-radius:5px; padding:5px 10px; cursor:pointer; }
+.userItem button:hover { background:#ff5555; }
+.stats { display:flex; gap:20px; margin-top:10px; }
+.statBox { background:#1e1e1e; padding:10px; border-radius:5px; flex:1; text-align:center; }
+.statBox h4 { margin:0; color:#ff3b3b; }
+.statBox p { font-size:18px; margin-top:5px; }
+#log { margin-top:20px; padding:10px; background:#1e1e1e; border-radius:5px; max-height:300px; overflow-y:auto; font-size:14px; }
 </style>
 </head>
 <body>
 
-<h1>Hermès Messenger - Admin</h1>
+<h1>Admin Hermès Messenger</h1>
 
-<section>
-    <h2>Utilisateurs connectés</h2>
-    <div id="connectedUsers"></div>
-</section>
+<h3>Utilisateurs connectés (<span id="userCount">0</span>)</h3>
+<div id="usersList"></div>
 
-<section>
-    <h2>Statistiques du jour</h2>
-    <div class="stats">
-        Messages envoyés : <span id="msgCount">0</span><br>
-        Utilisateurs connectés : <span id="usersCount">0</span>
+<h3>Statistiques</h3>
+<div class="stats">
+    <div class="statBox">
+        <h4>Connexions aujourd'hui</h4>
+        <p id="dayStats">0</p>
     </div>
-</section>
+    <div class="statBox">
+        <h4>Connexions ce mois</h4>
+        <p id="monthStats">0</p>
+    </div>
+</div>
 
-<script src="/socket.io/socket.io.js"></script>
+<h3>Journal des actions</h3>
+<div id="log"></div>
+
 <script>
 const socket = io();
-let msgTotal = 0;
+const usersList = document.getElementById('usersList');
+const dayStats = document.getElementById('dayStats');
+const monthStats = document.getElementById('monthStats');
+const log = document.getElementById('log');
 
-// Liste des utilisateurs connectés
-socket.on("users", list=>{
-    const div=document.getElementById("connectedUsers");
-    div.innerHTML="";
-    list.forEach(u=>{
-        const d=document.createElement("div");
-        d.className="user";
-        d.textContent=u;
-        div.appendChild(d);
+function addLog(msg){
+    const p = document.createElement('div');
+    p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    log.appendChild(p);
+    log.scrollTop = log.scrollHeight;
+}
+
+// Affichage des utilisateurs connectés
+function renderUsers(users){
+    usersList.innerHTML = '';
+    users.forEach(u=>{
+        const div = document.createElement('div');
+        div.className='userItem';
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = u.unread>0 ? `${u.pseudo} (${u.unread})` : u.pseudo;
+
+        const banBtn = document.createElement('button');
+        banBtn.textContent='Bannir';
+        banBtn.onclick = ()=>{
+            if(confirm(`Bannir ${u.pseudo} ?`)){
+                socket.emit('banUser', u.pseudo);
+                addLog(`Utilisateur banni: ${u.pseudo}`);
+            }
+        }
+
+        div.appendChild(nameSpan);
+        div.appendChild(banBtn);
+        usersList.appendChild(div);
     });
-    document.getElementById("usersCount").textContent=list.length;
+}
+
+// Socket events
+socket.on('updateUsers', (users)=>{
+    renderUsers(users);
+    document.getElementById('userCount').textContent = users.length;
+    addLog(`Liste des utilisateurs mise à jour`);
 });
 
-// Statistiques messages
-socket.on("message", data=>{
-    msgTotal++;
-    document.getElementById("msgCount").textContent = msgTotal;
+socket.on('stats', s=>{
+    dayStats.textContent = s.day;
+    monthStats.textContent = s.month;
 });
+
+socket.on('userConnected', pseudo=>addLog(`Utilisateur connecté: ${pseudo}`));
+socket.on('userDisconnected', pseudo=>addLog(`Utilisateur déconnecté: ${pseudo}`));
+socket.on('userBanned', pseudo=>addLog(`Utilisateur banni: ${pseudo}`));
 </script>
 
 </body>

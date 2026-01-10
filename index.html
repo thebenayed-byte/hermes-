@@ -2,188 +2,271 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hermès Messenger</title>
+<script src="/socket.io/socket.io.js"></script>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif; }
-  body { background:#121212; color:#fff; display:flex; flex-direction:column; height:100vh; }
-
-  header { padding:10px; background:#1f1f1f; display:flex; justify-content:space-between; align-items:center; }
-  header h1 { font-size:1.2rem; }
-  header .status { font-size:0.9rem; color:#aaa; }
-
-  .container { flex:1; display:flex; gap:10px; padding:10px; overflow:hidden; }
-
-  .chat-block { flex:1; display:flex; flex-direction:column; background:#1e1e1e; border-radius:10px; overflow:hidden; }
-
-  .chat-block h2 { padding:10px; background:#2a2a2a; font-size:1rem; }
-
-  .messages { flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
-  .message { max-width:70%; padding:8px 12px; border-radius:15px; word-wrap:break-word; }
-  .sent { background:#007bff; align-self:flex-end; color:#fff; }
-  .received { background:#555; align-self:flex-start; color:#fff; }
-  .message small { display:block; font-size:0.7rem; color:#ccc; margin-top:2px; }
-
-  .input-container { display:flex; border-top:1px solid #333; }
-  .input-container input { flex:1; padding:10px; background:#1e1e1e; border:none; color:#fff; }
-  .input-container input:focus { outline:none; }
-
-  .users-list { width:200px; background:#1e1e1e; overflow-y:auto; border-right:1px solid #333; padding:10px; }
-  .user { padding:8px; cursor:pointer; display:flex; justify-content:space-between; border-bottom:1px solid #333; }
-  .user:hover { background:#2a2a2a; }
-
-  /* Modal pseudo */
-  #loginModal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; }
-  #loginModal .modal-content { background:#1f1f1f; padding:20px; border-radius:10px; text-align:center; }
-  #loginModal input { padding:10px; margin-top:10px; width:100%; border:none; border-radius:5px; background:#2a2a2a; color:#fff; }
-  #loginModal button { margin-top:10px; padding:10px 20px; background:#007bff; border:none; color:#fff; border-radius:5px; cursor:pointer; }
-
-  .messages::-webkit-scrollbar, .users-list::-webkit-scrollbar { width:6px; }
-  .messages::-webkit-scrollbar-thumb, .users-list::-webkit-scrollbar-thumb { background:#444; border-radius:3px; }
-
-  @media (max-width:768px){
-    .container{flex-direction:column; gap:10px;}
-    .chat-block{width:100%;}
-    .users-list{width:100%; display:flex; overflow-x:auto; border-right:none; border-bottom:1px solid #333;}
-    .user{flex:1 0 auto; justify-content:center; border-bottom:none; border-right:1px solid #333;}
-  }
+body { margin:0; font-family:Arial; background:#121212; color:#eee; }
+#loginScreen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
+#loginBox { background:#1e1e1e; padding:40px; border-radius:10px; display:flex; flex-direction:column; align-items:center; gap:15px; width:300px; }
+#loginBox input { padding:10px; width:100%; border-radius:5px; border:none; background:#333; color:#fff; text-align:center; }
+#loginBox button { padding:10px 20px; border:none; border-radius:5px; background:#ff3b3b; color:#fff; cursor:pointer; font-weight:bold; }
+#loginBox button:hover { background:#ff5555; }
+#loginError { color:#ff5555; }
+#main { display:none; height:100vh; padding:10px; box-sizing:border-box; }
+#title { text-align:center; font-size:24px; font-weight:bold; margin-bottom:10px; color:#ff3b3b; }
+#topRight { position:absolute; top:10px; right:10px; background:#ff3b3b; color:#fff; padding:5px 10px; border-radius:5px; font-weight:bold; font-size:14px; }
+#container { display:flex; gap:10px; height:calc(100% - 40px); }
+#users, #privateChat, #publicChat { background:#1e1e1e; padding:10px; border-radius:10px; flex:1; display:flex; flex-direction:column; height:100%; }
+h3 { margin-top:0; border-bottom:1px solid #333; padding-bottom:5px; }
+#usersList { flex:1; overflow-y:auto; margin-top:5px; }
+.userItem { padding:5px; margin-bottom:3px; border-radius:5px; cursor:pointer; background:#333; display:flex; justify-content:space-between; align-items:center; }
+.userItem:hover { background:#444; }
+.userItem.selected { background:red; color:#fff; font-weight:bold; }
+#privateTabs { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:5px; }
+.tab { padding:5px 10px; border-radius:5px; background:#333; cursor:pointer; }
+.tab.active { background:red; color:#fff; font-weight:bold; }
+#messages, #publicMessages { flex:1; overflow-y:auto; margin-top:5px; padding:5px; border:1px solid #333; border-radius:5px; background:#121212; color:#eee; }
+input { padding:8px; border-radius:5px; border:none; outline:none; margin-top:5px; background:#333; color:#fff; width:calc(100% - 70px); box-sizing:border-box; }
+button.sendBtn { padding:8px 12px; margin-left:5px; border:none; border-radius:5px; background:#ff3b3b; color:#fff; cursor:pointer; }
+button.sendBtn:hover { background:#ff5555; }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-thumb { background:#555; border-radius:3px; }
+form { display:flex; flex-direction:column; gap:5px; margin-top:10px; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Hermès Messenger</h1>
-  <div class="status">Connectés: <span id="connectedCount">0</span> | Pseudo: <span id="myPseudo">-</span></div>
-</header>
 
-<div class="container">
-  <div class="users-list">
-    <h2>Connectés</h2>
-    <div id="users"></div>
-  </div>
-
-  <div class="chat-block">
-    <h2>Messages Publics</h2>
-    <div class="messages" id="publicMessages"></div>
-    <div class="input-container">
-      <input type="text" id="publicInput" placeholder="Envoyer un message public...">
+<!-- Écran connexion -->
+<div id="loginScreen">
+    <div id="loginBox">
+        <h1>Hermès Messenger</h1>
+        <input id="pseudoInput" placeholder="Entrez votre pseudo" />
+        <button onclick="login()">Se connecter</button>
+        <p id="loginError"></p>
+        <hr style="margin:10px 0; border-color:#333;">
+        <form action="/admin-login" method="post">
+            <input type="password" name="password" placeholder="Mot de passe admin"/>
+            <button type="submit">Accéder à l'admin</button>
+        </form>
     </div>
-  </div>
-
-  <div class="chat-block">
-    <h2>Messages Privés</h2>
-    <div class="messages" id="privateMessages"></div>
-    <div class="input-container">
-      <input type="text" id="privateInput" placeholder="Envoyer un message privé...">
-    </div>
-  </div>
 </div>
 
-<div id="loginModal">
-  <div class="modal-content">
-    <h2>Entrez votre pseudo</h2>
-    <input type="text" id="pseudoInput" placeholder="Pseudo">
-    <button id="loginBtn">Se connecter</button>
-  </div>
+<!-- Interface principale -->
+<div id="main">
+    <div id="title">Hermès Messenger</div>
+    <div id="topRight"></div>
+    <div id="container">
+        <!-- Utilisateurs -->
+        <div id="users">
+            <h3>Connectés (<span id="userCount">0</span>)</h3>
+            <div id="usersList"></div>
+        </div>
+
+        <!-- Messagerie privée -->
+        <div id="privateChat">
+            <h3>Messagerie privée</h3>
+            <div id="privateTabs"></div>
+            <div id="messages"></div>
+            <div style="display:flex; margin-top:5px;">
+                <input id="privateInput" placeholder="Ecrire un message privé" />
+                <button class="sendBtn" onclick="sendPrivate()">Envoyer</button>
+            </div>
+        </div>
+
+        <!-- Messagerie publique -->
+        <div id="publicChat">
+            <h3>Messagerie publique</h3>
+            <div id="publicMessages"></div>
+            <div style="display:flex; margin-top:5px;">
+                <input id="publicInput" placeholder="Ecrire un message public" />
+                <button class="sendBtn" onclick="sendPublic()">Envoyer</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
 <script>
-  const socket = io();
-  let myPseudo = '';
-  let selectedUser = '';
-  let usersList = [];
-  let allMessages = [];
+const socket = io();
+let myPseudo = '';
+let privateChats = {};
+let activeTab = '';
+let unreadCount = {};
 
-  const loginModal = document.getElementById('loginModal');
-  const pseudoInput = document.getElementById('pseudoInput');
-  const loginBtn = document.getElementById('loginBtn');
-  const usersDiv = document.getElementById('users');
-  const connectedCount = document.getElementById('connectedCount');
-  const myPseudoSpan = document.getElementById('myPseudo');
+// Heure et minute
+function getTime(){
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2,'0');
+    const m = now.getMinutes().toString().padStart(2,'0');
+    return `${h}:${m}`;
+}
 
-  const publicMessagesDiv = document.getElementById('publicMessages');
-  const privateMessagesDiv = document.getElementById('privateMessages');
-
-  const publicInput = document.getElementById('publicInput');
-  const privateInput = document.getElementById('privateInput');
-
-  // Connexion
-  loginBtn.addEventListener('click', () => {
-    const pseudo = pseudoInput.value.trim();
+// Connexion
+function login(){
+    const pseudo = document.getElementById('pseudoInput').value.trim();
     if(!pseudo) return;
-    myPseudo = pseudo;
-    myPseudoSpan.textContent = myPseudo;
-    loginModal.style.display='none';
-    socket.emit('login', myPseudo);
-  });
-  pseudoInput.addEventListener('keypress', (e)=>{ if(e.key==='Enter') loginBtn.click(); });
+    socket.emit('login', pseudo, (res)=>{
+        if(res.success){
+            myPseudo = pseudo;
+            document.getElementById('loginScreen').style.display='none';
+            document.getElementById('main').style.display='block';
+            document.getElementById('topRight').textContent = myPseudo;
+        } else {
+            document.getElementById('loginError').textContent = res.message;
+        }
+    });
+}
 
-  // Envoi public
-  publicInput.addEventListener('keypress', e=>{
-    if(e.key==='Enter' && publicInput.value.trim()){
-      const msg = publicInput.value.trim();
-      socket.emit('message',{ content:msg, from:myPseudo, to:'all', type:'public' });
-      publicInput.value='';
+// Historique messages publics
+socket.on('loadPublicMessages', (msgs)=>{
+    const div = document.getElementById('publicMessages');
+    div.innerHTML='';
+    msgs.forEach(m=>{
+        const d=document.createElement('div');
+        d.textContent=`(${m.time}) ${m.pseudo}: ${m.msg}`;
+        div.appendChild(d);
+    });
+});
+
+// Historique messages privés
+socket.on('loadPrivateMessages', (msgs)=>{
+    msgs.forEach(m=>{
+        if(!privateChats[m.from]) privateChats[m.from]=[];
+        privateChats[m.from].push(`(${m.time}) ${m.from}: ${m.msg}`);
+        unreadCount[m.from] = (unreadCount[m.from] || 0) + 1;
+    });
+    renderUsersList();
+    renderTabs();
+});
+
+// Liste utilisateurs connectés
+socket.on('updateUsers', (users)=>{
+    const list = document.getElementById('usersList');
+    list.innerHTML='';
+    document.getElementById('userCount').textContent = users.length;
+    users.forEach(u=>{
+        if(u.pseudo === myPseudo) return;
+        const div = document.createElement('div');
+        div.className='userItem';
+        if(u.pseudo===activeTab) div.classList.add('selected');
+
+        const count = unreadCount[u.pseudo] || 0;
+        div.textContent = count>0 ? `${u.pseudo} (${count})` : u.pseudo;
+
+        div.onclick = ()=>{
+            if(!privateChats[u.pseudo]) privateChats[u.pseudo]=[];
+            activeTab = u.pseudo;
+            unreadCount[u.pseudo] = 0;
+            renderTabs();
+            renderMessages();
+        }
+        list.appendChild(div);
+    });
+    renderTabs();
+});
+
+// Onglets privés
+function renderTabs(){
+    const tabsDiv = document.getElementById('privateTabs');
+    tabsDiv.innerHTML='';
+    Object.keys(privateChats).forEach(user=>{
+        const tab = document.createElement('div');
+        tab.className='tab';
+        if(user===activeTab) tab.classList.add('active');
+
+        const count = unreadCount[user] || 0;
+        tab.textContent = count>0 ? `${user} (${count})` : user;
+
+        tab.onclick = ()=>{
+            activeTab = user;
+            unreadCount[user] = 0;
+            renderTabs();
+            renderMessages();
+        }
+        tabsDiv.appendChild(tab);
+    });
+}
+
+// Affichage messages privés
+function renderMessages(){
+    const messagesDiv=document.getElementById('messages');
+    messagesDiv.innerHTML='';
+    if(!activeTab) return;
+    privateChats[activeTab].forEach(m=>{
+        const div=document.createElement('div');
+        div.textContent=m;
+        messagesDiv.appendChild(div);
+    });
+}
+
+// Envoyer message privé
+function sendPrivate(){
+    const input=document.getElementById('privateInput');
+    const msg=input.value.trim();
+    if(!msg||!activeTab) return;
+    socket.emit('privateMessage',{to:activeTab, msg});
+    if(!privateChats[activeTab]) privateChats[activeTab]=[];
+    privateChats[activeTab].push(`(${getTime()}) Moi: ${msg}`);
+    input.value='';
+    renderMessages();
+}
+document.getElementById('privateInput').addEventListener('keypress',(e)=>{
+    if(e.key==='Enter') sendPrivate();
+});
+
+// Réception message privé
+socket.on('privateMessage', ({from,msg,time})=>{
+    if(!privateChats[from]) privateChats[from]=[];
+    privateChats[from].push(`(${time}) ${from}: ${msg}`);
+
+    if(from !== activeTab){
+        unreadCount[from] = (unreadCount[from] || 0) + 1;
+        renderUsersList();
+        playNotification();
+    } else {
+        renderMessages();
     }
-  });
+});
 
-  // Envoi privé
-  privateInput.addEventListener('keypress', e=>{
-    if(e.key==='Enter' && privateInput.value.trim() && selectedUser){
-      const msg = privateInput.value.trim();
-      socket.emit('message',{ content:msg, from:myPseudo, to:selectedUser, type:'private' });
-      privateInput.value='';
+// Notifications sonores
+function playNotification(){
+    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
+    audio.play();
+}
+
+// Envoyer message public
+function sendPublic(){
+    const input=document.getElementById('publicInput');
+    const msg=input.value.trim();
+    if(msg){
+        socket.emit('publicMessage', msg);
+        input.value='';
     }
-  });
+}
+document.getElementById('publicInput').addEventListener('keypress',(e)=>{
+    if(e.key==='Enter') sendPublic();
+});
 
-  // Mise à jour utilisateurs
-  socket.on('users', data=>{
-    usersList = data.filter(u=>u.pseudo!==myPseudo);
-    connectedCount.textContent = data.length;
-    usersDiv.innerHTML='';
-    usersList.forEach(u=>{
-      const div = document.createElement('div');
-      div.classList.add('user');
-      div.innerHTML = `${u.pseudo} <span>(${u.unread||0})</span>`;
-      div.addEventListener('click', ()=>{
-        selectedUser = u.pseudo;
-        renderPrivateMessages();
-      });
-      usersDiv.appendChild(div);
+// Réception message public
+socket.on('publicMessage', ({pseudo,msg,time})=>{
+    const m=document.createElement('div');
+    m.textContent=`(${time}) ${pseudo}: ${msg}`;
+    document.getElementById('publicMessages').appendChild(m);
+});
+
+// Mettre à jour visuellement la liste utilisateurs
+function renderUsersList(){
+    const list = document.getElementById('usersList');
+    Array.from(list.children).forEach(div=>{
+        const user = div.textContent.replace(/\s\(\d+\)/,'');
+        const count = unreadCount[user] || 0;
+        div.textContent = count>0 ? `${user} (${count})` : user;
+        if(user===activeTab) div.classList.add('selected');
+        else div.classList.remove('selected');
     });
-  });
+}
 
-  // Réception messages
-  socket.on('message', data=>{
-    data.time = data.time || Date.now();
-    allMessages.push(data);
-    renderPublicMessages();
-    renderPrivateMessages();
-  });
-
-  function renderPublicMessages(){
-    publicMessagesDiv.innerHTML='';
-    allMessages.filter(m=>m.type==='public').forEach(m=>{
-      const div=document.createElement('div');
-      div.classList.add('message', m.from===myPseudo?'sent':'received');
-      div.innerHTML = `${m.content} <small>${new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</small>`;
-      publicMessagesDiv.appendChild(div);
-    });
-    publicMessagesDiv.scrollTop = publicMessagesDiv.scrollHeight;
-  }
-
-  function renderPrivateMessages(){
-    if(!selectedUser) return;
-    privateMessagesDiv.innerHTML='';
-    allMessages.filter(m=>m.type==='private' && ((m.from===myPseudo && m.to===selectedUser) || (m.from===selectedUser && m.to===myPseudo)))
-    .forEach(m=>{
-      const div=document.createElement('div');
-      div.classList.add('message', m.from===myPseudo?'sent':'received');
-      div.innerHTML = `${m.content} <small>${new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</small>`;
-      privateMessagesDiv.appendChild(div);
-    });
-    privateMessagesDiv.scrollTop = privateMessagesDiv.scrollHeight;
-  }
+socket.on('banned', ()=>{ alert('Vous avez été banni!'); location.reload(); });
 </script>
+
 </body>
 </html>

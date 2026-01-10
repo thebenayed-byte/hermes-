@@ -1,52 +1,43 @@
-const express = require("express");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
+const server = http.createServer(app);
+const io = new Server(server);
 
-app.use(express.static("public"));
+app.use(express.static(__dirname));
 
-let users = [];
-let bannedNumbers = [];
+let users = []; // { id, pseudo, unread: 0 }
 
-// ---------- SOCKET.IO ----------
-io.on("connection", socket => {
-    console.log("Nouvelle connexion");
+io.on('connection', socket => {
+  console.log('Un utilisateur connecté');
 
-    // Demande d'accès — connexion directe
-    socket.on("requestAccess", data => {
-        if (bannedNumbers.includes(data.number)) {
-            socket.emit("accessDenied", "Numéro banni");
-            return;
-        }
-        users.push({ socketId: socket.id, pseudo: data.pseudo, number: data.number });
-        socket.emit("userAccepted", data); // accès immédiat
-        io.emit("users", users.map(u => u.pseudo));
-    });
+  socket.on('login', pseudo => {
+    socket.pseudo = pseudo;
+    users.push({ id: socket.id, pseudo, unread: 0 });
+    io.emit('users', users);
+  });
 
-    // Login utilisateur
-    socket.on("login", pseudo => {
-        socket.pseudo = pseudo;
-        io.emit("users", users.map(u => u.pseudo));
-    });
+  socket.on('message', msg => {
+    msg.time = Date.now();
+    if(msg.type === 'private') {
+      const user = users.find(u => u.pseudo === msg.to);
+      if(user) {
+        io.to(user.id).emit('message', msg);
+        user.unread = (user.unread || 0) + 1;
+      }
+      socket.emit('message', msg); // aussi pour l'envoyeur
+    } else {
+      io.emit('message', msg);
+    }
+    io.emit('users', users);
+  });
 
-    // Messages
-    socket.on("message", data => {
-        if (data.to) { // message privé
-            const recipient = users.find(u => u.pseudo === data.to);
-            if (recipient) io.to(recipient.socketId).emit("message", data);
-        } else { // message groupe
-            socket.broadcast.emit("message", data);
-        }
-        socket.emit("message", data); // envoyer à soi-même
-    });
-
-    // Déconnexion
-    socket.on("disconnect", () => {
-        users = users.filter(u => u.socketId !== socket.id);
-        io.emit("users", users.map(u => u.pseudo));
-    });
+  socket.on('disconnect', () => {
+    users = users.filter(u => u.id !== socket.id);
+    io.emit('users', users);
+  });
 });
 
-// ---------- PORT Render ----------
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`Serveur lancé sur le port ${PORT}`));
+server.listen(3000, () => console.log('Serveur sur http://localhost:3000'));

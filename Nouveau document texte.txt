@@ -1,0 +1,37 @@
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static("public"));
+
+io.on("connection", (socket) => {
+
+    socket.on("join", ({ user, target }) => {
+        const room = [user, target].sort().join("_");
+        socket.join(room);
+        socket.room = room;
+        socket.user = user;
+    });
+
+    socket.on("privateMessage", (msg) => {
+        if (socket.room) {
+            io.to(socket.room).emit("privateMessage", {
+                user: socket.user,
+                message: msg,
+                time: new Date().toLocaleTimeString()
+            });
+        }
+    });
+
+    socket.on("disconnect", () => {
+        console.log("Utilisateur déconnecté");
+    });
+});
+
+server.listen(3000, () => {
+    console.log("Serveur lancé sur http://localhost:3000");
+});

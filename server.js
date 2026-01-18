@@ -1,139 +1,65 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const http = require("http");
+const fs = require("fs");
+const { Server } = require("socket.io");
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const fs = require('fs');
+const server = http.createServer(app);
+const io = new Server(server);
 
-const PORT = 3000;
-const ADMIN_PASSWORD = "Hermes123"; // mot de passe admin
+app.use(express.static("public"));
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
-
-// Admin login sécurisé
-app.post('/admin-login', (req, res) => {
-    const password = req.body.password;
-    if(password === ADMIN_PASSWORD){
-        res.redirect('/admin.html'); // accès à l'interface admin
-    } else {
-        res.send("<h2>Mot de passe incorrect pour accéder à l'admin</h2>");
-    }
-});
-
-// Stockage utilisateurs
 let users = {};
-let bannedUsers = [];
+const MESSAGES_FILE = "messages.json";
+let messagesDB = {};
 
-// Stats
-let stats = { day: 0, month: 0 };
-
-// Messages persistants
-let messages = { public: [], private: {} };
-
-// Charger messages depuis fichier
-function loadMessages() {
-    if (fs.existsSync('messages.json')) {
-        messages = JSON.parse(fs.readFileSync('messages.json'));
-    }
+if (fs.existsSync(MESSAGES_FILE)) {
+    messagesDB = JSON.parse(fs.readFileSync(MESSAGES_FILE));
 }
 
-// Sauvegarder messages
 function saveMessages() {
-    fs.writeFileSync('messages.json', JSON.stringify(messages, null, 2));
+    fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messagesDB, null, 2));
 }
 
-loadMessages();
+io.on("connection", (socket) => {
 
-// Socket.io
-io.on('connection', (socket) => {
-    console.log('Utilisateur connecté:', socket.id);
-
-    socket.on('login', (pseudo, callback) => {
-        if (bannedUsers.includes(pseudo)) {
-            callback({ success: false, message: "Vous êtes banni" });
-            return;
-        }
-
-        users[socket.id] = { pseudo, unread: {} };
-        callback({ success: true });
-
-        stats.day++;
-        stats.month++;
-
-        // Envoyer historique
-        socket.emit('loadPublicMessages', messages.public);
-        socket.emit('loadPrivateMessages', messages.private[pseudo] || []);
-
-        io.emit('updateUsers', getUserList());
-        io.emit('stats', stats);
-        io.emit('userConnected', pseudo);
+    socket.on("login", (username) => {
+        socket.username = username;
+        users[username] = socket.id;
+        io.emit("updateUsers", Object.keys(users));
     });
 
-    socket.on('publicMessage', (msg) => {
-        if(!users[socket.id]) return;
-        const pseudo = users[socket.id].pseudo;
-        const time = getTime();
-        const m = { pseudo, msg, time };
-        messages.public.push(m);
+    socket.on("joinRoom", (target) => {
+        if (!socket.username || !target) return;
+        const room = [socket.username, target].sort().join("_");
+        socket.join(room);
+        socket.room = room;
+        socket.target = target;
+
+        if (messagesDB[room]) {
+            socket.emit("loadMessages", messagesDB[room]);
+        } else {
+            messagesDB[room] = [];
+        }
+    });
+
+    socket.on("privateMessage", (msg) => {
+        if (!socket.room) return;
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2,"0");
+        const minutes = now.getMinutes().toString().padStart(2,"0");
+        const time = `${hours}:${minutes}`;
+
+        const messageObj = { user: socket.username, message: msg, time };
+        messagesDB[socket.room].push(messageObj);
         saveMessages();
-        io.emit('publicMessage', m);
+        io.to(socket.room).emit("privateMessage", messageObj);
     });
 
-    socket.on('privateMessage', ({ to, msg }) => {
-        if(!users[socket.id]) return;
-        const from = users[socket.id].pseudo;
-        const time = getTime();
-        if(!messages.private[to]) messages.private[to] = [];
-        messages.private[to].push({ from, msg, time });
-        saveMessages();
-
-        const toSocketId = Object.keys(users).find(id => users[id].pseudo === to);
-        if(toSocketId){
-            io.to(toSocketId).emit('privateMessage', { from, msg, time });
-            users[toSocketId].unread[from] = (users[toSocketId].unread[from] || 0) + 1;
-            io.emit('updateUsers', getUserList());
-        }
-    });
-
-    socket.on('banUser', (pseudo) => {
-        bannedUsers.push(pseudo);
-        const banSocketId = Object.keys(users).find(id => users[id].pseudo === pseudo);
-        if(banSocketId){
-            io.to(banSocketId).emit('banned');
-            delete users[banSocketId];
-        }
-        io.emit('updateUsers', getUserList());
-        io.emit('userBanned', pseudo);
-    });
-
-    socket.on('getStats', () => {
-        socket.emit('stats', stats);
-    });
-
-    socket.on('disconnect', () => {
-        if(users[socket.id]){
-            const pseudo = users[socket.id].pseudo;
-            delete users[socket.id];
-            io.emit('updateUsers', getUserList());
-            io.emit('userDisconnected', pseudo);
-        }
+    socket.on("disconnect", () => {
+        if (socket.username) delete users[socket.username];
+        io.emit("updateUsers", Object.keys(users));
     });
 });
 
-// Helper
-function getUserList() {
-    return Object.values(users).map(u => {
-        const totalUnread = Object.values(u.unread).reduce((a,b)=>a+b,0);
-        return { pseudo: u.pseudo, unread: totalUnread };
-    });
-}
-
-function getTime(){
-    const now = new Date();
-    const h = now.getHours().toString().padStart(2,'0');
-    const m = now.getMinutes().toString().padStart(2,'0');
-    return `${h}:${m}`;
-}
-
-http.listen(PORT, () => console.log(`Serveur lancé sur http://localhost:${PORT}`));
+server.listen(3000, () => console.log("Serveur Hermès Messenger sur http://localhost:3000"));

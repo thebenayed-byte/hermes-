@@ -2,271 +2,42 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hermès Messenger</title>
-<script src="/socket.io/socket.io.js"></script>
-<style>
-body { margin:0; font-family:Arial; background:#121212; color:#eee; }
-#loginScreen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
-#loginBox { background:#1e1e1e; padding:40px; border-radius:10px; display:flex; flex-direction:column; align-items:center; gap:15px; width:300px; }
-#loginBox input { padding:10px; width:100%; border-radius:5px; border:none; background:#333; color:#fff; text-align:center; }
-#loginBox button { padding:10px 20px; border:none; border-radius:5px; background:#ff3b3b; color:#fff; cursor:pointer; font-weight:bold; }
-#loginBox button:hover { background:#ff5555; }
-#loginError { color:#ff5555; }
-#main { display:none; height:100vh; padding:10px; box-sizing:border-box; }
-#title { text-align:center; font-size:24px; font-weight:bold; margin-bottom:10px; color:#ff3b3b; }
-#topRight { position:absolute; top:10px; right:10px; background:#ff3b3b; color:#fff; padding:5px 10px; border-radius:5px; font-weight:bold; font-size:14px; }
-#container { display:flex; gap:10px; height:calc(100% - 40px); }
-#users, #privateChat, #publicChat { background:#1e1e1e; padding:10px; border-radius:10px; flex:1; display:flex; flex-direction:column; height:100%; }
-h3 { margin-top:0; border-bottom:1px solid #333; padding-bottom:5px; }
-#usersList { flex:1; overflow-y:auto; margin-top:5px; }
-.userItem { padding:5px; margin-bottom:3px; border-radius:5px; cursor:pointer; background:#333; display:flex; justify-content:space-between; align-items:center; }
-.userItem:hover { background:#444; }
-.userItem.selected { background:red; color:#fff; font-weight:bold; }
-#privateTabs { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:5px; }
-.tab { padding:5px 10px; border-radius:5px; background:#333; cursor:pointer; }
-.tab.active { background:red; color:#fff; font-weight:bold; }
-#messages, #publicMessages { flex:1; overflow-y:auto; margin-top:5px; padding:5px; border:1px solid #333; border-radius:5px; background:#121212; color:#eee; }
-input { padding:8px; border-radius:5px; border:none; outline:none; margin-top:5px; background:#333; color:#fff; width:calc(100% - 70px); box-sizing:border-box; }
-button.sendBtn { padding:8px 12px; margin-left:5px; border:none; border-radius:5px; background:#ff3b3b; color:#fff; cursor:pointer; }
-button.sendBtn:hover { background:#ff5555; }
-::-webkit-scrollbar { width:6px; }
-::-webkit-scrollbar-thumb { background:#555; border-radius:3px; }
-form { display:flex; flex-direction:column; gap:5px; margin-top:10px; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Écran connexion -->
-<div id="loginScreen">
-    <div id="loginBox">
-        <h1>Hermès Messenger</h1>
-        <input id="pseudoInput" placeholder="Entrez votre pseudo" />
+<div class="cube" id="cube">
+
+    <!-- Login -->
+    <div class="login" id="login">
+        <h2>Hermès Messenger</h2>
+        <input id="username" placeholder="Ton nom">
         <button onclick="login()">Se connecter</button>
-        <p id="loginError"></p>
-        <hr style="margin:10px 0; border-color:#333;">
-        <form action="/admin-login" method="post">
-            <input type="password" name="password" placeholder="Mot de passe admin"/>
-            <button type="submit">Accéder à l'admin</button>
-        </form>
     </div>
-</div>
 
-<!-- Interface principale -->
-<div id="main">
-    <div id="title">Hermès Messenger</div>
-    <div id="topRight"></div>
-    <div id="container">
-        <!-- Utilisateurs -->
-        <div id="users">
-            <h3>Connectés (<span id="userCount">0</span>)</h3>
-            <div id="usersList"></div>
-        </div>
+    <!-- Chat -->
+    <div class="chat hidden" id="chat">
+        <div class="userlist" id="userList"></div>
 
-        <!-- Messagerie privée -->
-        <div id="privateChat">
-            <h3>Messagerie privée</h3>
-            <div id="privateTabs"></div>
-            <div id="messages"></div>
-            <div style="display:flex; margin-top:5px;">
-                <input id="privateInput" placeholder="Ecrire un message privé" />
-                <button class="sendBtn" onclick="sendPrivate()">Envoyer</button>
-            </div>
-        </div>
+        <div class="chatbox">
+            <div class="header" id="chatTitle">Hermès Messenger</div>
+            <div class="messages" id="messages"></div>
 
-        <!-- Messagerie publique -->
-        <div id="publicChat">
-            <h3>Messagerie publique</h3>
-            <div id="publicMessages"></div>
-            <div style="display:flex; margin-top:5px;">
-                <input id="publicInput" placeholder="Ecrire un message public" />
-                <button class="sendBtn" onclick="sendPublic()">Envoyer</button>
+            <div class="input">
+                <input id="messageInput" placeholder="Écrire un message...">
+                <button onclick="sendMessage()">➤</button>
             </div>
         </div>
     </div>
+
 </div>
 
-<script>
-const socket = io();
-let myPseudo = '';
-let privateChats = {};
-let activeTab = '';
-let unreadCount = {};
+<!-- Notification flottante style WhatsApp -->
+<div id="notif" class="hidden"></div>
 
-// Heure et minute
-function getTime(){
-    const now = new Date();
-    const h = now.getHours().toString().padStart(2,'0');
-    const m = now.getMinutes().toString().padStart(2,'0');
-    return `${h}:${m}`;
-}
-
-// Connexion
-function login(){
-    const pseudo = document.getElementById('pseudoInput').value.trim();
-    if(!pseudo) return;
-    socket.emit('login', pseudo, (res)=>{
-        if(res.success){
-            myPseudo = pseudo;
-            document.getElementById('loginScreen').style.display='none';
-            document.getElementById('main').style.display='block';
-            document.getElementById('topRight').textContent = myPseudo;
-        } else {
-            document.getElementById('loginError').textContent = res.message;
-        }
-    });
-}
-
-// Historique messages publics
-socket.on('loadPublicMessages', (msgs)=>{
-    const div = document.getElementById('publicMessages');
-    div.innerHTML='';
-    msgs.forEach(m=>{
-        const d=document.createElement('div');
-        d.textContent=`(${m.time}) ${m.pseudo}: ${m.msg}`;
-        div.appendChild(d);
-    });
-});
-
-// Historique messages privés
-socket.on('loadPrivateMessages', (msgs)=>{
-    msgs.forEach(m=>{
-        if(!privateChats[m.from]) privateChats[m.from]=[];
-        privateChats[m.from].push(`(${m.time}) ${m.from}: ${m.msg}`);
-        unreadCount[m.from] = (unreadCount[m.from] || 0) + 1;
-    });
-    renderUsersList();
-    renderTabs();
-});
-
-// Liste utilisateurs connectés
-socket.on('updateUsers', (users)=>{
-    const list = document.getElementById('usersList');
-    list.innerHTML='';
-    document.getElementById('userCount').textContent = users.length;
-    users.forEach(u=>{
-        if(u.pseudo === myPseudo) return;
-        const div = document.createElement('div');
-        div.className='userItem';
-        if(u.pseudo===activeTab) div.classList.add('selected');
-
-        const count = unreadCount[u.pseudo] || 0;
-        div.textContent = count>0 ? `${u.pseudo} (${count})` : u.pseudo;
-
-        div.onclick = ()=>{
-            if(!privateChats[u.pseudo]) privateChats[u.pseudo]=[];
-            activeTab = u.pseudo;
-            unreadCount[u.pseudo] = 0;
-            renderTabs();
-            renderMessages();
-        }
-        list.appendChild(div);
-    });
-    renderTabs();
-});
-
-// Onglets privés
-function renderTabs(){
-    const tabsDiv = document.getElementById('privateTabs');
-    tabsDiv.innerHTML='';
-    Object.keys(privateChats).forEach(user=>{
-        const tab = document.createElement('div');
-        tab.className='tab';
-        if(user===activeTab) tab.classList.add('active');
-
-        const count = unreadCount[user] || 0;
-        tab.textContent = count>0 ? `${user} (${count})` : user;
-
-        tab.onclick = ()=>{
-            activeTab = user;
-            unreadCount[user] = 0;
-            renderTabs();
-            renderMessages();
-        }
-        tabsDiv.appendChild(tab);
-    });
-}
-
-// Affichage messages privés
-function renderMessages(){
-    const messagesDiv=document.getElementById('messages');
-    messagesDiv.innerHTML='';
-    if(!activeTab) return;
-    privateChats[activeTab].forEach(m=>{
-        const div=document.createElement('div');
-        div.textContent=m;
-        messagesDiv.appendChild(div);
-    });
-}
-
-// Envoyer message privé
-function sendPrivate(){
-    const input=document.getElementById('privateInput');
-    const msg=input.value.trim();
-    if(!msg||!activeTab) return;
-    socket.emit('privateMessage',{to:activeTab, msg});
-    if(!privateChats[activeTab]) privateChats[activeTab]=[];
-    privateChats[activeTab].push(`(${getTime()}) Moi: ${msg}`);
-    input.value='';
-    renderMessages();
-}
-document.getElementById('privateInput').addEventListener('keypress',(e)=>{
-    if(e.key==='Enter') sendPrivate();
-});
-
-// Réception message privé
-socket.on('privateMessage', ({from,msg,time})=>{
-    if(!privateChats[from]) privateChats[from]=[];
-    privateChats[from].push(`(${time}) ${from}: ${msg}`);
-
-    if(from !== activeTab){
-        unreadCount[from] = (unreadCount[from] || 0) + 1;
-        renderUsersList();
-        playNotification();
-    } else {
-        renderMessages();
-    }
-});
-
-// Notifications sonores
-function playNotification(){
-    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
-    audio.play();
-}
-
-// Envoyer message public
-function sendPublic(){
-    const input=document.getElementById('publicInput');
-    const msg=input.value.trim();
-    if(msg){
-        socket.emit('publicMessage', msg);
-        input.value='';
-    }
-}
-document.getElementById('publicInput').addEventListener('keypress',(e)=>{
-    if(e.key==='Enter') sendPublic();
-});
-
-// Réception message public
-socket.on('publicMessage', ({pseudo,msg,time})=>{
-    const m=document.createElement('div');
-    m.textContent=`(${time}) ${pseudo}: ${msg}`;
-    document.getElementById('publicMessages').appendChild(m);
-});
-
-// Mettre à jour visuellement la liste utilisateurs
-function renderUsersList(){
-    const list = document.getElementById('usersList');
-    Array.from(list.children).forEach(div=>{
-        const user = div.textContent.replace(/\s\(\d+\)/,'');
-        const count = unreadCount[user] || 0;
-        div.textContent = count>0 ? `${user} (${count})` : user;
-        if(user===activeTab) div.classList.add('selected');
-        else div.classList.remove('selected');
-    });
-}
-
-socket.on('banned', ()=>{ alert('Vous avez été banni!'); location.reload(); });
-</script>
-
+<script src="/socket.io/socket.io.js"></script>
+<script src="client.js"></script>
 </body>
 </html>

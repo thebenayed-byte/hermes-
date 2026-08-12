@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Connexion - BenPopup</title>
+
+</head>
+
+<body>
+
+    <h1>Connexion à BenPopup</h1>
+
+    <p>
+        Connecte-toi pour accéder à ton compte.
+    </p>
+
+    {% if google_active %}
+
+        <a href="/auth/google">
+            🔵 Continuer avec Google
+        </a>
+
+    {% else %}
+
+        <p>
+            Google n'est pas encore configuré.
+        </p>
+
+    {% endif %}
+
+    <br><br>
+
+    <a href="/">
+        Retour
+    </a>
+
+</body>
+
+</html>

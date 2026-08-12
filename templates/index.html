@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>BenPopup</title>
+
+</head>
+
+<body>
+
+    <h1>BenPopup</h1>
+
+    <p>
+        Messagerie instantanée
+    </p>
+
+    {% if utilisateur %}
+
+        <p>
+            Bienvenue {{ utilisateur.nom }}
+        </p>
+
+        <a href="/dashboard">
+            Mon espace
+        </a>
+
+        <br><br>
+
+        <a href="/logout">
+            Déconnexion
+        </a>
+
+    {% else %}
+
+        <a href="/login">
+            Se connecter
+        </a>
+
+    {% endif %}
+
+    <hr>
+
+    <p>
+        Serveur :
+        <strong>En ligne</strong>
+    </p>
+
+    <p>
+        Utilisateurs connectés :
+        {{ clients }}
+    </p>
+
+</body>
+
+</html>

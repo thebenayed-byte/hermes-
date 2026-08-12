@@ -108,14 +108,15 @@ async def accueil(request: Request):
         "utilisateur"
     )
 
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "utilisateur": utilisateur,
-            "clients": len(clients)
-        }
-    )
+   return templates.TemplateResponse(
+    request=request,
+    name="index.html",
+    context={
+        "request": request,
+        "utilisateur": utilisateur,
+        "clients": len(clients)
+    }
+)
 
 
 # ============================================================

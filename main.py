@@ -52,7 +52,6 @@ templates = Jinja2Templates(
 
 oauth = OAuth()
 
-
 GOOGLE_CLIENT_ID = os.environ.get(
     "GOOGLE_CLIENT_ID"
 )
@@ -71,8 +70,10 @@ if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
 
         client_secret=GOOGLE_CLIENT_SECRET,
 
-        server_metadata_url=
-            "https://accounts.google.com/.well-known/openid-configuration",
+        server_metadata_url=(
+            "https://accounts.google.com/"
+            ".well-known/openid-configuration"
+        ),
 
         client_kwargs={
             "scope": "openid email profile"
@@ -108,15 +109,15 @@ async def accueil(request: Request):
         "utilisateur"
     )
 
-   return templates.TemplateResponse(
-    request=request,
-    name="index.html",
-    context={
-        "request": request,
-        "utilisateur": utilisateur,
-        "clients": len(clients)
-    }
-)
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "request": request,
+            "utilisateur": utilisateur,
+            "clients": len(clients)
+        }
+    )
 
 
 # ============================================================
@@ -140,15 +141,14 @@ async def login(request: Request):
         )
 
     return templates.TemplateResponse(
-        "login.html",
-        {
+        request=request,
+        name="login.html",
+        context={
             "request": request,
-            "google_active":
-                bool(
-                    GOOGLE_CLIENT_ID
-                    and
-                    GOOGLE_CLIENT_SECRET
-                )
+            "google_active": bool(
+                GOOGLE_CLIENT_ID
+                and GOOGLE_CLIENT_SECRET
+            )
         }
     )
 
@@ -160,14 +160,25 @@ async def login(request: Request):
 @app.get(
     "/auth/google"
 )
-async def auth_google(request: Request):
+async def auth_google(
+    request: Request
+):
 
-    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+    if (
+        not GOOGLE_CLIENT_ID
+        or not GOOGLE_CLIENT_SECRET
+    ):
 
         return HTMLResponse(
             """
-            <h1>Google OAuth n'est pas configuré.</h1>
-            <p>Ajoute GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET dans Render.</p>
+            <h1>
+                Google OAuth n'est pas configuré.
+            </h1>
+
+            <p>
+                Ajoute GOOGLE_CLIENT_ID et
+                GOOGLE_CLIENT_SECRET dans Render.
+            </p>
             """,
             status_code=500
         )
@@ -233,9 +244,18 @@ async def auth_google_callback(
             "photo": photo
         }
 
-        request.session["utilisateur"] = utilisateur
+        request.session[
+            "utilisateur"
+        ] = utilisateur
 
-        utilisateurs[email] = utilisateur
+        utilisateurs[
+            email
+        ] = utilisateur
+
+        print(
+            f"[GOOGLE] "
+            f"{nom} ({email}) connecté"
+        )
 
         return RedirectResponse(
             "/dashboard"
@@ -250,9 +270,17 @@ async def auth_google_callback(
 
         return HTMLResponse(
             f"""
-            <h1>Erreur de connexion Google</h1>
-            <p>{e}</p>
-            <a href="/login">Retour</a>
+            <h1>
+                Erreur de connexion Google
+            </h1>
+
+            <p>
+                {e}
+            </p>
+
+            <a href="/login">
+                Retour à la connexion
+            </a>
             """,
             status_code=500
         )
@@ -281,8 +309,9 @@ async def dashboard(
         )
 
     return templates.TemplateResponse(
-        "dashboard.html",
-        {
+        request=request,
+        name="dashboard.html",
+        context={
             "request": request,
             "utilisateur": utilisateur,
             "clients": len(clients)
@@ -394,7 +423,9 @@ async def websocket_endpoint(
         # AJOUT CLIENT
         # ----------------------------------------------------
 
-        clients[nom] = websocket
+        clients[
+            nom
+        ] = websocket
 
         print(
             f"[+] {nom} connecté"

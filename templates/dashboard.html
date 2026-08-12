@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>BenPopup - Tableau de bord</title>
+
+</head>
+
+<body>
+
+    <h1>BenPopup</h1>
+
+    <h2>
+        Bienvenue {{ utilisateur.nom }}
+    </h2>
+
+    {% if utilisateur.photo %}
+
+        <img
+            src="{{ utilisateur.photo }}"
+            width="80"
+            height="80"
+            alt="Photo de profil"
+        >
+
+    {% endif %}
+
+    <p>
+        <strong>Email :</strong>
+        {{ utilisateur.email }}
+    </p>
+
+    <p>
+        <strong>Connexion :</strong>
+        Google
+    </p>
+
+    <p>
+        <strong>Utilisateurs connectés :</strong>
+        {{ clients }}
+    </p>
+
+    <hr>
+
+    <a href="/logout">
+        Déconnexion
+    </a>
+
+</body>
+
+</html>

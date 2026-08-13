@@ -5,56 +5,117 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>BenPopup</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f8;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 20px;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+    </style>
 
 </head>
 
 <body>
 
-    <h1>BenPopup</h1>
+<header>
 
-    <p>
-        Messagerie instantanée
-    </p>
+    <h1>💬 BenPopup</h1>
+
+</header>
+
+
+<main>
+
+    <h2>Messagerie instantanée</h2>
+
 
     {% if utilisateur %}
 
         <p>
-            Bienvenue {{ utilisateur.nom }}
+            Bonjour
+            <strong>
+                {{ utilisateur.nom }}
+            </strong>
         </p>
 
-        <a href="/dashboard">
-            Mon espace
+        <p>
+            Connexion :
+            <strong>
+                {{ utilisateur.provider }}
+            </strong>
+        </p>
+
+        <a
+            class="btn"
+            href="/dashboard"
+        >
+            Ouvrir BenPopup
         </a>
 
-        <br><br>
-
-        <a href="/logout">
+        <a
+            href="/logout"
+        >
             Déconnexion
         </a>
 
     {% else %}
 
-        <a href="/login">
+        <a
+            class="btn"
+            href="/login"
+        >
             Se connecter
         </a>
 
     {% endif %}
 
+
     <hr>
+
 
     <p>
         Serveur :
-        <strong>En ligne</strong>
+        <strong>🟢 En ligne</strong>
     </p>
 
     <p>
         Utilisateurs connectés :
-        {{ clients }}
+        <strong>{{ clients }}</strong>
     </p>
+
+</main>
 
 </body>
 

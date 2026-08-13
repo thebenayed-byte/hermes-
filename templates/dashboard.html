@@ -5,8 +5,10 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>BenPopup</title>
 
@@ -17,453 +19,205 @@
         }
 
         body {
-            margin: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: #f1f5f9;
-            color: #0f172a;
-        }
 
-        /* =====================================================
-           HEADER
-        ===================================================== */
+            margin: 0;
+
+            min-height: 100vh;
+
+            background:
+                #0f172a;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            color: white;
+        }
 
         .header {
-            height: 70px;
-            background: #0f172a;
-            color: white;
 
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
 
-            padding: 0 25px;
+            padding: 18px 25px;
 
-            box-shadow: 0 2px 10px rgba(0,0,0,.15);
+            background:
+                #1e293b;
+
+            border-bottom:
+                1px solid #334155;
         }
 
-        .logo {
+        .brand {
+
             font-size: 22px;
-            font-weight: 700;
+
+            font-weight: bold;
         }
 
-        .profil {
+        .user {
+
             display: flex;
+
             align-items: center;
-            gap: 12px;
+
+            gap: 10px;
         }
 
-        .profil img {
+        .photo {
+
             width: 42px;
+
             height: 42px;
 
             border-radius: 50%;
 
             object-fit: cover;
-        }
 
-        .profil-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .profil-nom {
-            font-weight: 600;
-        }
-
-        .profil-email {
-            font-size: 12px;
-            opacity: .75;
+            background: #475569;
         }
 
         .logout {
+
             margin-left: 15px;
 
             color: white;
+
             text-decoration: none;
 
             background: #ef4444;
 
-            padding: 8px 14px;
+            padding: 9px 14px;
 
             border-radius: 8px;
-
-            font-size: 13px;
         }
 
-        /* =====================================================
-           APPLICATION
-        ===================================================== */
+        .container {
 
-        .application {
-            display: flex;
+            max-width: 1000px;
 
-            height: calc(100vh - 70px);
-        }
-
-        /* =====================================================
-           SIDEBAR
-        ===================================================== */
-
-        .sidebar {
-            width: 280px;
-
-            background: white;
-
-            border-right: 1px solid #e2e8f0;
+            margin: 40px auto;
 
             padding: 20px;
-
-            overflow-y: auto;
         }
 
-        .sidebar-titre {
-            font-size: 16px;
-            font-weight: 700;
+        .welcome {
 
-            margin-bottom: 15px;
-        }
-
-        .etat {
-            display: flex;
-            align-items: center;
-
-            gap: 8px;
-
-            font-size: 13px;
-
-            margin-bottom: 20px;
-        }
-
-        .point {
-            width: 9px;
-            height: 9px;
-
-            background: #22c55e;
-
-            border-radius: 50%;
-        }
-
-        .utilisateur {
-            width: 100%;
-
-            border: none;
-
-            background: #f8fafc;
-
-            padding: 12px;
-
-            margin-bottom: 8px;
-
-            border-radius: 10px;
-
-            text-align: left;
-
-            cursor: pointer;
-
-            font-size: 14px;
-        }
-
-        .utilisateur:hover {
-            background: #e2e8f0;
-        }
-
-        .utilisateur.actif {
-            background: #dbeafe;
-        }
-
-        /* =====================================================
-           ZONE CHAT
-        ===================================================== */
-
-        .chat {
-            flex: 1;
-
-            display: flex;
-
-            flex-direction: column;
-
-            background: #f8fafc;
-        }
-
-        .chat-header {
-            height: 65px;
-
-            background: white;
-
-            border-bottom: 1px solid #e2e8f0;
-
-            display: flex;
-
-            align-items: center;
-
-            padding: 0 25px;
-
-            font-weight: 700;
-        }
-
-        .chat-messages {
-            flex: 1;
+            background: #1e293b;
 
             padding: 25px;
 
-            overflow-y: auto;
+            border-radius: 15px;
 
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 10px;
+            margin-bottom: 25px;
         }
 
-        .message {
-            max-width: 70%;
+        .welcome h1 {
 
-            padding: 10px 14px;
-
-            border-radius: 12px;
-
-            font-size: 14px;
-
-            line-height: 1.4;
+            margin-top: 0;
         }
 
-        .message.moi {
-            align-self: flex-end;
+        .provider {
 
-            background: #2563eb;
+            display: inline-block;
 
-            color: white;
+            padding: 6px 12px;
 
-            border-bottom-right-radius: 3px;
+            border-radius: 20px;
+
+            background: #334155;
+
+            margin-top: 8px;
+
+            text-transform: capitalize;
         }
 
-        .message.autre {
-            align-self: flex-start;
+        .status {
 
-            background: white;
+            background: #064e3b;
 
-            border: 1px solid #e2e8f0;
-
-            border-bottom-left-radius: 3px;
-        }
-
-        /* =====================================================
-           INPUT
-        ===================================================== */
-
-        .chat-input {
-            background: white;
-
-            border-top: 1px solid #e2e8f0;
+            border: 1px solid #10b981;
 
             padding: 15px;
 
-            display: flex;
-
-            gap: 10px;
-        }
-
-        .chat-input input {
-            flex: 1;
-
-            border: 1px solid #cbd5e1;
-
             border-radius: 10px;
 
-            padding: 12px;
-
-            font-size: 14px;
-
-            outline: none;
+            margin-bottom: 25px;
         }
 
-        .chat-input input:focus {
-            border-color: #2563eb;
-        }
+        .message-box {
 
-        .chat-input button {
-            border: none;
-
-            background: #2563eb;
-
-            color: white;
-
-            padding: 0 20px;
-
-            border-radius: 10px;
-
-            cursor: pointer;
-
-            font-weight: 600;
-        }
-
-        .chat-input button:hover {
-            background: #1d4ed8;
-        }
-
-        /* =====================================================
-           POPUP
-        ===================================================== */
-
-        .popup {
-            position: fixed;
-
-            right: 25px;
-            bottom: 25px;
-
-            width: 340px;
-
-            background: white;
+            background: #1e293b;
 
             border-radius: 15px;
 
-            box-shadow:
-                0 15px 40px rgba(0,0,0,.25);
-
-            overflow: hidden;
-
-            display: none;
-
-            z-index: 9999;
+            padding: 25px;
         }
 
-        .popup-header {
-            background: #0f172a;
+        .message-box h2 {
 
-            color: white;
-
-            padding: 14px 16px;
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
+            margin-top: 0;
         }
 
-        .popup-fermer {
-            cursor: pointer;
+        .online {
 
-            font-size: 18px;
+            color: #34d399;
+
+            font-weight: bold;
         }
 
-        .popup-corps {
-            padding: 18px;
-        }
+        .signature {
 
-        .popup-expediteur {
-            font-weight: 700;
+            text-align: center;
 
-            margin-bottom: 8px;
-        }
+            color: #64748b;
 
-        .popup-message {
-            color: #334155;
+            margin-top: 50px;
 
-            margin-bottom: 15px;
-
-            word-wrap: break-word;
-        }
-
-        .popup-reponse {
-            display: flex;
-
-            gap: 8px;
-        }
-
-        .popup-reponse input {
-            flex: 1;
-
-            padding: 9px;
-
-            border: 1px solid #cbd5e1;
-
-            border-radius: 8px;
-        }
-
-        .popup-reponse button {
-            border: none;
-
-            background: #2563eb;
-
-            color: white;
-
-            padding: 0 12px;
-
-            border-radius: 8px;
-
-            cursor: pointer;
-        }
-
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-
-        @media (max-width: 700px) {
-
-            .sidebar {
-                width: 210px;
-            }
-
-            .profil-email {
-                display: none;
-            }
-
-            .popup {
-                left: 15px;
-                right: 15px;
-
-                width: auto;
-            }
-
+            font-size: 13px;
         }
 
     </style>
 
 </head>
 
-
 <body>
 
 
-<!-- =========================================================
-     HEADER
-========================================================= -->
-
 <header class="header">
 
-    <div class="logo">
+    <div class="brand">
+
         💬 BenPopup
+
     </div>
 
 
-    <div class="profil">
+    <div class="user">
 
-        {% if utilisateur and utilisateur.photo %}
+        {% if utilisateur.photo %}
 
         <img
+            class="photo"
             src="{{ utilisateur.photo }}"
             alt="Photo"
         >
 
+        {% else %}
+
+        <div class="photo"></div>
+
         {% endif %}
 
 
-        <div class="profil-info">
+        <span>
 
-            <span class="profil-nom">
+            {{ utilisateur.nom }}
 
-                {{ utilisateur.nom }}
-
-            </span>
-
-            <span class="profil-email">
-
-                {{ utilisateur.email }}
-
-            </span>
-
-        </div>
+        </span>
 
 
         <a
@@ -478,810 +232,116 @@
 </header>
 
 
-<!-- =========================================================
-     APPLICATION
-========================================================= -->
-
-<div class="application">
+<div class="container">
 
 
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
+    <div class="welcome">
 
-    <aside class="sidebar">
+        <h1>
 
-        <div class="sidebar-titre">
-            Utilisateurs
-        </div>
+            Bienvenue
+            {{ utilisateur.nom }} 👋
 
-
-        <div class="etat">
-
-            <span
-                class="point"
-                id="pointServeur"
-            ></span>
-
-            <span id="etatServeur">
-                Connexion...
-            </span>
-
-        </div>
+        </h1>
 
 
-        <div id="listeUtilisateurs">
+        <p>
 
-            <div
-                style="
-                    color:#64748b;
-                    font-size:13px;
-                "
-            >
-                Recherche des utilisateurs...
-            </div>
+            Tu es connecté à BenPopup.
 
-        </div>
-
-    </aside>
+        </p>
 
 
-    <!-- =====================================================
-         CHAT
-    ====================================================== -->
+        <div class="provider">
 
-    <main class="chat">
-
-
-        <div
-            class="chat-header"
-            id="chatHeader"
-        >
-
-            Sélectionne un utilisateur
-
-        </div>
-
-
-        <div
-            class="chat-messages"
-            id="messages"
-        >
-
-            <div
-                style="
-                    margin:auto;
-                    color:#64748b;
-                "
-            >
-
-                Choisis un utilisateur pour commencer.
-
-            </div>
-
-        </div>
-
-
-        <div class="chat-input">
-
-            <input
-                type="text"
-                id="champMessage"
-                placeholder="Écrire un message..."
-                disabled
-            >
-
-            <button
-                id="boutonEnvoyer"
-                disabled
-            >
-                Envoyer
-            </button>
-
-        </div>
-
-
-    </main>
-
-</div>
-
-
-<!-- =========================================================
-     POPUP
-========================================================= -->
-
-<div
-    class="popup"
-    id="popup"
->
-
-    <div class="popup-header">
-
-        <span>
-            💬 Nouveau message
-        </span>
-
-        <span
-            class="popup-fermer"
-            onclick="fermerPopup()"
-        >
-            ×
-        </span>
-
-    </div>
-
-
-    <div class="popup-corps">
-
-        <div
-            class="popup-expediteur"
-            id="popupExpediteur"
-        ></div>
-
-
-        <div
-            class="popup-message"
-            id="popupMessage"
-        ></div>
-
-
-        <div class="popup-reponse">
-
-            <input
-                type="text"
-                id="popupChamp"
-                placeholder="Répondre..."
-            >
-
-            <button
-                onclick="repondrePopup()"
-            >
-                ➤
-            </button>
+            Connexion :
+            {{ utilisateur.provider }}
 
         </div>
 
     </div>
 
+
+    <div class="status">
+
+        🟢 Serveur :
+
+        <span class="online">
+            EN LIGNE
+        </span>
+
+        <br><br>
+
+        💻 Clients Windows connectés :
+
+        <strong>
+            {{ clients }}
+        </strong>
+
+    </div>
+
+
+    <div class="message-box">
+
+        <h2>
+            💬 Messagerie BenPopup
+        </h2>
+
+        <p>
+            La connexion WebSocket du serveur
+            est disponible.
+        </p>
+
+        <p>
+            La version Windows de BenPopup peut
+            continuer à utiliser :
+        </p>
+
+        <ul>
+
+            <li>
+                connexion WebSocket
+            </li>
+
+            <li>
+                messages instantanés
+            </li>
+
+            <li>
+                notifications popup
+            </li>
+
+            <li>
+                réponses directes
+            </li>
+
+        </ul>
+
+    </div>
+
+
+    <div class="signature">
+
+        BenPopup
+
+        <br>
+
+        Créé par
+        <strong>
+            Abdallah Ben Ayed
+        </strong>
+
+        <br>
+
+        thebenayed@gmail.com
+
+        <br>
+
+        Institut Bassora
+
+    </div>
+
 </div>
-
-
-<script>
-
-
-// ============================================================
-// UTILISATEUR CONNECTÉ
-// ============================================================
-
-const monNom = {{ utilisateur.nom | tojson }};
-
-
-// ============================================================
-// WEBSOCKET
-// ============================================================
-
-let socket = null;
-
-
-// ============================================================
-// DESTINATAIRE ACTUEL
-// ============================================================
-
-let destinataireActuel = null;
-
-
-// ============================================================
-// DERNIER EXPEDITEUR
-// ============================================================
-
-let dernierExpediteur = null;
-
-
-// ============================================================
-// CONNEXION
-// ============================================================
-
-function connecterWebSocket() {
-
-    const protocole =
-        window.location.protocol === "https:"
-            ? "wss://"
-            : "ws://";
-
-    socket = new WebSocket(
-        protocole +
-        window.location.host +
-        "/ws"
-    );
-
-
-    socket.onopen = function() {
-
-        document.getElementById(
-            "etatServeur"
-        ).textContent = "Connecté";
-
-        socket.send(
-            JSON.stringify({
-                type: "connexion",
-                nom: monNom
-            })
-        );
-
-    };
-
-
-    socket.onmessage = function(event) {
-
-        try {
-
-            const data =
-                JSON.parse(event.data);
-
-            traiterMessage(data);
-
-        }
-        catch (erreur) {
-
-            console.error(
-                "Message invalide :",
-                erreur
-            );
-
-        }
-
-    };
-
-
-    socket.onclose = function() {
-
-        document.getElementById(
-            "etatServeur"
-        ).textContent =
-            "Déconnecté";
-
-        setTimeout(
-            connecterWebSocket,
-            5000
-        );
-
-    };
-
-
-    socket.onerror = function(erreur) {
-
-        console.error(
-            "WebSocket :",
-            erreur
-        );
-
-    };
-
-}
-
-
-// ============================================================
-// TRAITER MESSAGE
-// ============================================================
-
-function traiterMessage(data) {
-
-
-    // ========================================================
-    // CONNEXION
-    // ========================================================
-
-    if (data.type === "connexion_ok") {
-
-        demanderListe();
-
-    }
-
-
-    // ========================================================
-    // LISTE
-    // ========================================================
-
-    else if (data.type === "liste") {
-
-        afficherUtilisateurs(
-            data.utilisateurs || []
-        );
-
-    }
-
-
-    // ========================================================
-    // MESSAGE
-    // ========================================================
-
-    else if (data.type === "message") {
-
-        const expediteur =
-            data.expediteur;
-
-        const message =
-            data.message;
-
-        afficherMessage(
-            expediteur,
-            message,
-            false
-        );
-
-
-        afficherPopup(
-            expediteur,
-            message
-        );
-
-
-        // Mettre à jour la liste
-        demanderListe();
-
-    }
-
-
-    // ========================================================
-    // ERREUR
-    // ========================================================
-
-    else if (data.type === "erreur") {
-
-        alert(
-            data.message
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// DEMANDER LISTE
-// ============================================================
-
-function demanderListe() {
-
-    if (
-        socket &&
-        socket.readyState === WebSocket.OPEN
-    ) {
-
-        socket.send(
-            JSON.stringify({
-                type: "liste"
-            })
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// AFFICHER UTILISATEURS
-// ============================================================
-
-function afficherUtilisateurs(
-    utilisateurs
-) {
-
-    const conteneur =
-        document.getElementById(
-            "listeUtilisateurs"
-        );
-
-    conteneur.innerHTML = "";
-
-
-    const autres =
-        utilisateurs.filter(
-            utilisateur =>
-                utilisateur !== monNom
-        );
-
-
-    if (autres.length === 0) {
-
-        conteneur.innerHTML = `
-            <div
-                style="
-                    color:#64748b;
-                    font-size:13px;
-                "
-            >
-                Aucun autre utilisateur connecté.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    autres.forEach(
-        utilisateur => {
-
-            const bouton =
-                document.createElement(
-                    "button"
-                );
-
-            bouton.className =
-                "utilisateur";
-
-
-            if (
-                utilisateur ===
-                destinataireActuel
-            ) {
-
-                bouton.classList.add(
-                    "actif"
-                );
-
-            }
-
-
-            bouton.textContent =
-                "🟢 " + utilisateur;
-
-
-            bouton.onclick =
-                function() {
-
-                    selectionnerUtilisateur(
-                        utilisateur
-                    );
-
-                };
-
-
-            conteneur.appendChild(
-                bouton
-            );
-
-        }
-    );
-
-}
-
-
-// ============================================================
-// SELECTIONNER UTILISATEUR
-// ============================================================
-
-function selectionnerUtilisateur(
-    utilisateur
-) {
-
-    destinataireActuel =
-        utilisateur;
-
-
-    document.getElementById(
-        "chatHeader"
-    ).textContent =
-        "💬 " + utilisateur;
-
-
-    document.getElementById(
-        "champMessage"
-    ).disabled = false;
-
-
-    document.getElementById(
-        "boutonEnvoyer"
-    ).disabled = false;
-
-
-    document.getElementById(
-        "champMessage"
-    ).focus();
-
-
-    document.getElementById(
-        "messages"
-    ).innerHTML = "";
-
-
-    demanderListe();
-
-}
-
-
-// ============================================================
-// ENVOYER MESSAGE
-// ============================================================
-
-function envoyerMessage() {
-
-    const champ =
-        document.getElementById(
-            "champMessage"
-        );
-
-
-    const message =
-        champ.value.trim();
-
-
-    if (!message) {
-
-        return;
-
-    }
-
-
-    if (!destinataireActuel) {
-
-        return;
-
-    }
-
-
-    if (
-        !socket ||
-        socket.readyState !== WebSocket.OPEN
-    ) {
-
-        alert(
-            "Serveur déconnecté."
-        );
-
-        return;
-
-    }
-
-
-    socket.send(
-        JSON.stringify({
-
-            type: "message",
-
-            expediteur:
-                monNom,
-
-            destinataire:
-                destinataireActuel,
-
-            message:
-                message
-
-        })
-    );
-
-
-    afficherMessage(
-        monNom,
-        message,
-        true
-    );
-
-
-    champ.value = "";
-
-    champ.focus();
-
-}
-
-
-// ============================================================
-// AFFICHER MESSAGE
-// ============================================================
-
-function afficherMessage(
-    expediteur,
-    message,
-    moi
-) {
-
-    const conteneur =
-        document.getElementById(
-            "messages"
-        );
-
-
-    const element =
-        document.createElement(
-            "div"
-        );
-
-
-    element.className =
-        "message " +
-        (
-            moi
-                ? "moi"
-                : "autre"
-        );
-
-
-    element.textContent =
-        (
-            moi
-                ? message
-                : expediteur + ": " + message
-        );
-
-
-    conteneur.appendChild(
-        element
-    );
-
-
-    conteneur.scrollTop =
-        conteneur.scrollHeight;
-
-}
-
-
-// ============================================================
-// POPUP
-// ============================================================
-
-function afficherPopup(
-    expediteur,
-    message
-) {
-
-    dernierExpediteur =
-        expediteur;
-
-
-    document.getElementById(
-        "popupExpediteur"
-    ).textContent =
-        expediteur;
-
-
-    document.getElementById(
-        "popupMessage"
-    ).textContent =
-        message;
-
-
-    document.getElementById(
-        "popup"
-    ).style.display =
-        "block";
-
-
-    document.getElementById(
-        "popupChamp"
-    ).focus();
-
-}
-
-
-// ============================================================
-// FERMER POPUP
-// ============================================================
-
-function fermerPopup() {
-
-    document.getElementById(
-        "popup"
-    ).style.display =
-        "none";
-
-}
-
-
-// ============================================================
-// REPONDRE AU POPUP
-// ============================================================
-
-function repondrePopup() {
-
-    const champ =
-        document.getElementById(
-            "popupChamp"
-        );
-
-
-    const message =
-        champ.value.trim();
-
-
-    if (!message) {
-
-        return;
-
-    }
-
-
-    if (!dernierExpediteur) {
-
-        return;
-
-    }
-
-
-    if (
-        !socket ||
-        socket.readyState !== WebSocket.OPEN
-    ) {
-
-        return;
-
-    }
-
-
-    socket.send(
-        JSON.stringify({
-
-            type: "message",
-
-            expediteur:
-                monNom,
-
-            destinataire:
-                dernierExpediteur,
-
-            message:
-                message
-
-        })
-    );
-
-
-    champ.value = "";
-
-    fermerPopup();
-
-}
-
-
-// ============================================================
-// TOUCHE ENTREE
-// ============================================================
-
-document.getElementById(
-    "champMessage"
-).addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key === "Enter"
-        ) {
-
-            envoyerMessage();
-
-        }
-
-    }
-);
-
-
-document.getElementById(
-    "popupChamp"
-).addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key === "Enter"
-        ) {
-
-            repondrePopup();
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// DEMARRAGE
-// ============================================================
-
-connecterWebSocket();
-
-
-</script>
 
 </body>
 

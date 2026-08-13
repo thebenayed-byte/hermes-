@@ -14,144 +14,48 @@
 
     <style>
 
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
             margin: 0;
-
-            min-height: 100vh;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #0f172a,
-                    #1e293b
-                );
-
-            font-family:
-                Arial,
-                sans-serif;
-
-            color: white;
+            padding: 40px;
         }
 
-        .container {
-
-            width: 400px;
-
-            max-width: 90%;
-
+        .box {
+            max-width: 420px;
+            margin: auto;
             background: white;
-
-            color: #111827;
-
-            padding: 35px;
-
-            border-radius: 20px;
-
-            box-shadow:
-                0 20px 50px
-                rgba(0,0,0,0.3);
-
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,.12);
             text-align: center;
         }
 
         h1 {
-
-            margin-top: 0;
-
-            font-size: 28px;
+            margin-bottom: 10px;
         }
 
-        .description {
-
-            color: #6b7280;
-
-            margin-bottom: 30px;
-        }
-
-        .button {
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            width: 100%;
-
+        .btn {
+            display: block;
             padding: 14px;
-
-            margin: 12px 0;
-
-            border-radius: 10px;
-
+            margin-top: 15px;
+            border-radius: 8px;
             text-decoration: none;
-
+            color: white;
             font-weight: bold;
-
-            transition: 0.2s;
-        }
-
-        .button:hover {
-
-            transform:
-                translateY(-2px);
         }
 
         .google {
-
-            background: #4285f4;
-
-            color: white;
+            background: #4285F4;
         }
 
         .facebook {
-
-            background: #1877f2;
-
-            color: white;
-        }
-
-        .disabled {
-
-            background: #e5e7eb;
-
-            color: #9ca3af;
-
-            cursor: not-allowed;
-        }
-
-        .icon {
-
-            font-size: 20px;
-
-            margin-right: 10px;
+            background: #1877F2;
         }
 
         .back {
-
-            display: inline-block;
-
+            display: block;
             margin-top: 20px;
-
-            color: #64748b;
-
-            text-decoration: none;
-        }
-
-        .back:hover {
-
-            text-decoration: underline;
         }
 
     </style>
@@ -160,13 +64,11 @@
 
 <body>
 
-<div class="container">
+<div class="box">
 
-    <h1>
-        Connexion à BenPopup
-    </h1>
+    <h1>💬 BenPopup</h1>
 
-    <p class="description">
+    <p>
         Connecte-toi pour accéder à ton compte.
     </p>
 
@@ -174,25 +76,11 @@
     {% if google_active %}
 
     <a
-        class="button google"
+        class="btn google"
         href="/auth/google"
     >
-
-        <span class="icon">
-            G
-        </span>
-
-        Continuer avec Google
-
+        🔵 Continuer avec Google
     </a>
-
-    {% else %}
-
-    <div class="button disabled">
-
-        Google n'est pas configuré
-
-    </div>
 
     {% endif %}
 
@@ -200,25 +88,20 @@
     {% if facebook_active %}
 
     <a
-        class="button facebook"
+        class="btn facebook"
         href="/auth/facebook"
     >
-
-        <span class="icon">
-            f
-        </span>
-
-        Continuer avec Facebook
-
+        🔵 Continuer avec Facebook
     </a>
 
-    {% else %}
+    {% endif %}
 
-    <div class="button disabled">
 
-        Facebook n'est pas configuré
+    {% if not google_active and not facebook_active %}
 
-    </div>
+    <p>
+        Aucun système de connexion n'est configuré.
+    </p>
 
     {% endif %}
 
@@ -227,7 +110,7 @@
         class="back"
         href="/"
     >
-        ← Retour
+        Retour
     </a>
 
 </div>

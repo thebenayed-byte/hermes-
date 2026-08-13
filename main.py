@@ -21,7 +21,6 @@ import time
 #
 # ============================================================
 
-
 app = FastAPI(
     title="BenPopup Server"
 )
@@ -56,13 +55,15 @@ templates = Jinja2Templates(
 
 
 # ============================================================
-# GOOGLE + FACEBOOK OAUTH
+# OAUTH
 # ============================================================
 
 oauth = OAuth()
 
 
-# ---------------- GOOGLE ----------------
+# ============================================================
+# GOOGLE
+# ============================================================
 
 GOOGLE_CLIENT_ID = os.environ.get(
     "GOOGLE_CLIENT_ID"
@@ -91,7 +92,9 @@ if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
     )
 
 
-# ---------------- FACEBOOK ----------------
+# ============================================================
+# FACEBOOK
+# ============================================================
 
 FACEBOOK_APP_ID = os.environ.get(
     "FACEBOOK_APP_ID"
@@ -127,14 +130,26 @@ if FACEBOOK_APP_ID and FACEBOOK_APP_SECRET:
 
 
 # ============================================================
-# CLIENTS WINDOWS / ANDROID CONNECTÉS
+# CLIENTS CONNECTÉS
+#
+# Structure :
+#
+# clients = {
+#     "Abdallah": {
+#         "websocket": websocket,
+#         "id": "...",
+#         "email": "...",
+#         "provider": "google"
+#     }
+# }
+#
 # ============================================================
 
 clients = {}
 
 
 # ============================================================
-# UTILISATEURS CONNECTÉS AU SITE
+# UTILISATEURS WEB CONNECTÉS
 # ============================================================
 
 utilisateurs = {}
@@ -155,7 +170,9 @@ sessions_ws = {}
     "/",
     response_class=HTMLResponse
 )
-async def accueil(request: Request):
+async def accueil(
+    request: Request
+):
 
     utilisateur = request.session.get(
         "utilisateur"
@@ -180,7 +197,9 @@ async def accueil(request: Request):
     "/login",
     response_class=HTMLResponse
 )
-async def login(request: Request):
+async def login(
+    request: Request
+):
 
     utilisateur = request.session.get(
         "utilisateur"
@@ -221,17 +240,24 @@ async def login(request: Request):
 @app.get(
     "/auth/google"
 )
-async def auth_google(request: Request):
+async def auth_google(
+    request: Request
+):
 
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
 
         return HTMLResponse(
             """
             <h1>Google OAuth non configuré</h1>
+
             <p>
-            Ajoute GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET
-            dans les variables d'environnement Render.
+            GOOGLE_CLIENT_ID ou
+            GOOGLE_CLIENT_SECRET est manquant.
             </p>
+
+            <a href="/login">
+                Retour
+            </a>
             """,
             status_code=500
         )
@@ -275,7 +301,9 @@ async def auth_google_callback(
             )
 
         utilisateur = {
-            "provider": "google",
+
+            "provider":
+                "google",
 
             "id":
                 user_info.get(
@@ -351,7 +379,9 @@ async def auth_google_callback(
 @app.get(
     "/auth/facebook"
 )
-async def auth_facebook(request: Request):
+async def auth_facebook(
+    request: Request
+):
 
     if not FACEBOOK_APP_ID or not FACEBOOK_APP_SECRET:
 
@@ -360,9 +390,13 @@ async def auth_facebook(request: Request):
             <h1>Facebook OAuth non configuré</h1>
 
             <p>
-            Ajoute FACEBOOK_APP_ID et
-            FACEBOOK_APP_SECRET dans Render.
+            FACEBOOK_APP_ID ou
+            FACEBOOK_APP_SECRET est manquant.
             </p>
+
+            <a href="/login">
+                Retour
+            </a>
             """,
             status_code=500
         )
@@ -399,8 +433,7 @@ async def auth_facebook_callback(
             "me",
             token=token,
             params={
-                "fields":
-                    "id,name,picture"
+                "fields": "id,name,picture"
             }
         )
 
@@ -423,7 +456,8 @@ async def auth_facebook_callback(
 
         utilisateur = {
 
-            "provider": "facebook",
+            "provider":
+                "facebook",
 
             "id":
                 user_info.get(
@@ -479,6 +513,98 @@ async def auth_facebook_callback(
 
 
 # ============================================================
+# CONNEXION TEMPORAIRE PAR PSEUDO
+#
+# CETTE ROUTE EST POUR LES TESTS.
+#
+# Exemple :
+#
+# /api/test-login?pseudo=Abdallah
+#
+# ============================================================
+
+@app.get(
+    "/api/test-login"
+)
+async def test_login(
+    request: Request,
+    pseudo: str
+):
+
+    pseudo = pseudo.strip()
+
+    # --------------------------------------------------------
+    # Vérification
+    # --------------------------------------------------------
+
+    if not pseudo:
+
+        return {
+            "connecte": False,
+            "message": "Pseudo obligatoire"
+        }
+
+    if len(pseudo) > 30:
+
+        return {
+            "connecte": False,
+            "message": "Pseudo trop long"
+        }
+
+    # --------------------------------------------------------
+    # Identifiant temporaire
+    # --------------------------------------------------------
+
+    utilisateur_id = (
+        "test_"
+        + secrets.token_hex(8)
+    )
+
+    utilisateur = {
+
+        "provider":
+            "test",
+
+        "id":
+            utilisateur_id,
+
+        "nom":
+            pseudo,
+
+        "email":
+            "",
+
+        "photo":
+            ""
+    }
+
+    # --------------------------------------------------------
+    # Session navigateur
+    # --------------------------------------------------------
+
+    request.session[
+        "utilisateur"
+    ] = utilisateur
+
+    print(
+        "[TEST LOGIN]",
+        utilisateur
+    )
+
+    return {
+
+        "connecte":
+            True,
+
+        "message":
+            "Connexion test réussie",
+
+        "utilisateur":
+            utilisateur
+    }
+
+
+# ============================================================
 # API UTILISATEUR
 # ============================================================
 
@@ -501,7 +627,8 @@ async def api_me(
 
     return {
 
-        "connecte": True,
+        "connecte":
+            True,
 
         "id":
             utilisateur.get(
@@ -532,7 +659,7 @@ async def api_me(
 
 
 # ============================================================
-# CREATION TOKEN WEBSOCKET
+# CRÉER TOKEN WEBSOCKET
 # ============================================================
 
 @app.get(
@@ -549,9 +676,26 @@ async def creer_ws_token(
     if not utilisateur:
 
         return {
-            "connecte": False,
-            "token": None
+
+            "connecte":
+                False,
+
+            "token":
+                None,
+
+            "message":
+                "Utilisateur non connecté"
         }
+
+    # --------------------------------------------------------
+    # Nettoyage
+    # --------------------------------------------------------
+
+    nettoyer_tokens()
+
+    # --------------------------------------------------------
+    # Nouveau token
+    # --------------------------------------------------------
 
     token = secrets.token_urlsafe(
         32
@@ -589,11 +733,19 @@ async def creer_ws_token(
             time.time()
     }
 
+    print(
+        "[WS TOKEN]",
+        utilisateur.get("nom"),
+        utilisateur.get("provider")
+    )
+
     return {
 
-        "connecte": True,
+        "connecte":
+            True,
 
-        "token": token,
+        "token":
+            token,
 
         "nom":
             utilisateur.get(
@@ -613,16 +765,18 @@ async def creer_ws_token(
 
 
 # ============================================================
-# NETTOYAGE DES TOKENS
+# NETTOYER TOKENS
 # ============================================================
 
 def nettoyer_tokens():
 
     maintenant = time.time()
 
-    expires = []
+    tokens_expires = []
 
-    for token, session in sessions_ws.items():
+    for token, session in list(
+        sessions_ws.items()
+    ):
 
         created = session.get(
             "created",
@@ -633,11 +787,11 @@ def nettoyer_tokens():
 
         if maintenant - created > 600:
 
-            expires.append(
+            tokens_expires.append(
                 token
             )
 
-    for token in expires:
+    for token in tokens_expires:
 
         sessions_ws.pop(
             token,
@@ -672,7 +826,9 @@ async def dashboard(
         request=request,
         name="dashboard.html",
         context={
-            "request": request,
+
+            "request":
+                request,
 
             "utilisateur":
                 utilisateur,
@@ -765,9 +921,7 @@ async def websocket_endpoint(
     nom = None
 
     utilisateur_id = None
-
     utilisateur_email = None
-
     provider = None
 
     try:
@@ -866,7 +1020,7 @@ async def websocket_endpoint(
             return
 
         # ====================================================
-        # IDENTITE SERVEUR
+        # IDENTITÉ
         # ====================================================
 
         utilisateur_id = utilisateur.get(
@@ -891,7 +1045,7 @@ async def websocket_endpoint(
             nom = "Utilisateur"
 
         # ====================================================
-        # TOKEN UTILISE
+        # TOKEN À USAGE UNIQUE
         # ====================================================
 
         sessions_ws.pop(
@@ -900,7 +1054,7 @@ async def websocket_endpoint(
         )
 
         # ====================================================
-        # COMPTE DEJA CONNECTE
+        # COMPTE DÉJÀ CONNECTÉ
         # ====================================================
 
         if nom in clients:
@@ -941,21 +1095,42 @@ async def websocket_endpoint(
                 provider
         }
 
+        print()
         print(
-            f"[+] {nom} connecté"
+            "========================================"
         )
 
         print(
-            f"    Provider : {provider}"
+            "[+] CLIENT CONNECTÉ"
         )
 
         print(
-            f"    Email : {utilisateur_email}"
+            "Nom :",
+            nom
         )
 
         print(
-            f"    Clients : "
-            f"{list(clients.keys())}"
+            "ID :",
+            utilisateur_id
+        )
+
+        print(
+            "Provider :",
+            provider
+        )
+
+        print(
+            "Email :",
+            utilisateur_email
+        )
+
+        print(
+            "Clients :",
+            list(clients.keys())
+        )
+
+        print(
+            "========================================"
         )
 
         # ====================================================
@@ -985,7 +1160,7 @@ async def websocket_endpoint(
         )
 
         # ====================================================
-        # BOUCLE
+        # BOUCLE MESSAGES
         # ====================================================
 
         while True:
@@ -1016,15 +1191,23 @@ async def websocket_endpoint(
                     "message"
                 )
 
-                # IMPORTANT :
-                # l'expéditeur est déterminé
-                # par le serveur.
+                # ------------------------------------------------
+                # L'expéditeur vient TOUJOURS du serveur.
+                # ------------------------------------------------
 
                 expediteur = nom
 
                 if not destinataire:
 
                     continue
+
+                if not message:
+
+                    continue
+
+                message = str(
+                    message
+                ).strip()
 
                 if not message:
 
@@ -1047,9 +1230,9 @@ async def websocket_endpoint(
 
                     continue
 
-                # ---------------------------------------------
-                # DESTINATAIRE CONNECTE
-                # ---------------------------------------------
+                # ------------------------------------------------
+                # DESTINATAIRE CONNECTÉ
+                # ------------------------------------------------
 
                 if destinataire in clients:
 
@@ -1084,6 +1267,26 @@ async def websocket_endpoint(
                         f"{message}"
                     )
 
+                    # ------------------------------------------------
+                    # Confirmation à l'expéditeur
+                    # ------------------------------------------------
+
+                    await websocket.send_text(
+                        json.dumps(
+                            {
+                                "type":
+                                    "message_envoye",
+
+                                "destinataire":
+                                    destinataire,
+
+                                "message":
+                                    message
+                            },
+                            ensure_ascii=False
+                        )
+                    )
+
                 else:
 
                     await websocket.send_text(
@@ -1101,7 +1304,7 @@ async def websocket_endpoint(
                     )
 
             # =================================================
-            # LISTE UTILISATEURS
+            # LISTE
             # =================================================
 
             elif type_message == "liste":
@@ -1134,14 +1337,108 @@ async def websocket_endpoint(
                         {
                             "type":
                                 "pong"
-                        }
+                        },
+                        ensure_ascii=False
                     )
                 )
+
+            # =================================================
+            # CHANGER NOM
+            # =================================================
+
+            elif type_message == "changer_nom":
+
+                nouveau_nom = data.get(
+                    "nouveau_nom",
+                    ""
+                ).strip()
+
+                if not nouveau_nom:
+
+                    continue
+
+                if len(nouveau_nom) > 30:
+
+                    await websocket.send_text(
+                        json.dumps(
+                            {
+                                "type":
+                                    "erreur",
+
+                                "message":
+                                    "Nom trop long."
+                            },
+                            ensure_ascii=False
+                        )
+                    )
+
+                    continue
+
+                if (
+                    nouveau_nom in clients
+                    and
+                    nouveau_nom != nom
+                ):
+
+                    await websocket.send_text(
+                        json.dumps(
+                            {
+                                "type":
+                                    "erreur",
+
+                                "message":
+                                    "Ce nom est déjà utilisé."
+                            },
+                            ensure_ascii=False
+                        )
+                    )
+
+                    continue
+
+                ancien_nom = nom
+
+                client_data = clients.pop(
+                    ancien_nom
+                )
+
+                nom = nouveau_nom
+
+                clients[nom] = client_data
+
+                print(
+                    f"[NOM] "
+                    f"{ancien_nom} -> "
+                    f"{nom}"
+                )
+
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type":
+                                "nom_modifie",
+
+                            "nom":
+                                nom
+                        },
+                        ensure_ascii=False
+                    )
+                )
+
+
+    # ========================================================
+    # DÉCONNEXION WEBSOCKET
+    # ========================================================
 
     except WebSocketDisconnect:
 
         print(
             f"[-] {nom} déconnecté"
+        )
+
+    except json.JSONDecodeError:
+
+        print(
+            f"[ERREUR JSON] {nom}"
         )
 
     except Exception as e:
@@ -1164,13 +1461,13 @@ async def websocket_endpoint(
             )
 
         print(
-            f"    Clients : "
-            f"{list(clients.keys())}"
+            "Clients actuellement connectés :",
+            list(clients.keys())
         )
 
 
 # ============================================================
-# SIGNATURE
+# API ABOUT
 # ============================================================
 
 @app.get(
@@ -1190,5 +1487,8 @@ async def about():
             "thebenayed@gmail.com",
 
         "organisation":
-            "Institut Bassora"
+            "Institut Bassora",
+
+        "version":
+            "1.0"
     }

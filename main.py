@@ -21,13 +21,14 @@ import time
 #
 # ============================================================
 
+
 app = FastAPI(
     title="BenPopup Server"
 )
 
 
 # ============================================================
-# CONFIGURATION SESSION
+# SESSION
 # ============================================================
 
 SESSION_SECRET = os.environ.get(
@@ -84,7 +85,7 @@ if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
         client_secret=GOOGLE_CLIENT_SECRET,
 
         server_metadata_url=
-        "https://accounts.google.com/.well-known/openid-configuration",
+            "https://accounts.google.com/.well-known/openid-configuration",
 
         client_kwargs={
             "scope": "openid email profile"
@@ -115,13 +116,13 @@ if FACEBOOK_APP_ID and FACEBOOK_APP_SECRET:
         client_secret=FACEBOOK_APP_SECRET,
 
         authorize_url=
-        "https://www.facebook.com/v23.0/dialog/oauth",
+            "https://www.facebook.com/v23.0/dialog/oauth",
 
         access_token_url=
-        "https://graph.facebook.com/v23.0/oauth/access_token",
+            "https://graph.facebook.com/v23.0/oauth/access_token",
 
         api_base_url=
-        "https://graph.facebook.com/v23.0/",
+            "https://graph.facebook.com/v23.0/",
 
         client_kwargs={
             "scope": "public_profile"
@@ -130,7 +131,7 @@ if FACEBOOK_APP_ID and FACEBOOK_APP_SECRET:
 
 
 # ============================================================
-# CLIENTS CONNECTÉS
+# CLIENTS WINDOWS / ANDROID
 # ============================================================
 
 clients = {}
@@ -144,7 +145,7 @@ utilisateurs = {}
 
 
 # ============================================================
-# SESSIONS WEBSOCKET
+# TOKENS WEBSOCKET
 # ============================================================
 
 sessions_ws = {}
@@ -203,22 +204,22 @@ async def login(request: Request):
             "request": request,
 
             "google_active":
-            bool(
-                GOOGLE_CLIENT_ID
-                and GOOGLE_CLIENT_SECRET
-            ),
+                bool(
+                    GOOGLE_CLIENT_ID
+                    and GOOGLE_CLIENT_SECRET
+                ),
 
             "facebook_active":
-            bool(
-                FACEBOOK_APP_ID
-                and FACEBOOK_APP_SECRET
-            )
+                bool(
+                    FACEBOOK_APP_ID
+                    and FACEBOOK_APP_SECRET
+                )
         }
     )
 
 
 # ============================================================
-# GOOGLE LOGIN
+# GOOGLE
 # ============================================================
 
 @app.get(
@@ -233,8 +234,8 @@ async def auth_google(request: Request):
             <h1>Google OAuth non configuré</h1>
 
             <p>
-            GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET
-            sont absents des variables Render.
+            GOOGLE_CLIENT_ID et
+            GOOGLE_CLIENT_SECRET sont absents.
             </p>
             """,
             status_code=500
@@ -281,30 +282,30 @@ async def auth_google_callback(
         utilisateur = {
 
             "provider":
-            "google",
+                "google",
 
             "id":
-            user_info.get(
-                "sub"
-            ),
+                user_info.get(
+                    "sub"
+                ),
 
             "nom":
-            user_info.get(
-                "name",
-                "Utilisateur Google"
-            ),
+                user_info.get(
+                    "name",
+                    "Utilisateur Google"
+                ),
 
             "email":
-            user_info.get(
-                "email",
-                ""
-            ),
+                user_info.get(
+                    "email",
+                    ""
+                ),
 
             "photo":
-            user_info.get(
-                "picture",
-                ""
-            )
+                user_info.get(
+                    "picture",
+                    ""
+                )
         }
 
         request.session[
@@ -339,19 +340,15 @@ async def auth_google_callback(
         return HTMLResponse(
             f"""
             <h1>Erreur Google</h1>
-
             <p>{e}</p>
-
-            <a href="/login">
-                Retour
-            </a>
+            <a href="/login">Retour</a>
             """,
             status_code=500
         )
 
 
 # ============================================================
-# FACEBOOK LOGIN
+# FACEBOOK
 # ============================================================
 
 @app.get(
@@ -366,8 +363,8 @@ async def auth_facebook(request: Request):
             <h1>Facebook OAuth non configuré</h1>
 
             <p>
-            FACEBOOK_APP_ID et FACEBOOK_APP_SECRET
-            sont absents des variables Render.
+            FACEBOOK_APP_ID et
+            FACEBOOK_APP_SECRET sont absents.
             </p>
             """,
             status_code=500
@@ -405,8 +402,7 @@ async def auth_facebook_callback(
             "me",
             token=token,
             params={
-                "fields":
-                "id,name,picture"
+                "fields": "id,name,picture"
             }
         )
 
@@ -430,24 +426,24 @@ async def auth_facebook_callback(
         utilisateur = {
 
             "provider":
-            "facebook",
+                "facebook",
 
             "id":
-            user_info.get(
-                "id"
-            ),
+                user_info.get(
+                    "id"
+                ),
 
             "nom":
-            user_info.get(
-                "name",
-                "Utilisateur Facebook"
-            ),
+                user_info.get(
+                    "name",
+                    "Utilisateur Facebook"
+                ),
 
             "email":
-            "",
+                "",
 
             "photo":
-            photo
+                photo
         }
 
         request.session[
@@ -474,19 +470,15 @@ async def auth_facebook_callback(
         return HTMLResponse(
             f"""
             <h1>Erreur Facebook</h1>
-
             <p>{e}</p>
-
-            <a href="/login">
-                Retour
-            </a>
+            <a href="/login">Retour</a>
             """,
             status_code=500
         )
 
 
 # ============================================================
-# CONNEXION INVITÉ
+# CONNEXION INVITE
 # ============================================================
 
 @app.get(
@@ -496,24 +488,96 @@ async def auth_guest(
     request: Request
 ):
 
+    nom = request.query_params.get(
+        "nom",
+        ""
+    ).strip()
+
+    # --------------------------------------------------------
+    # Si aucun nom n'est fourni, afficher formulaire
+    # --------------------------------------------------------
+
+    if not nom:
+
+        return HTMLResponse(
+            """
+            <!DOCTYPE html>
+
+            <html lang="fr">
+
+            <head>
+
+                <meta charset="UTF-8">
+
+                <meta name="viewport"
+                    content="width=device-width,initial-scale=1">
+
+                <title>BenPopup - Invité</title>
+
+            </head>
+
+            <body>
+
+                <h2>👤 Connexion invité</h2>
+
+                <form action="/auth/guest" method="get">
+
+                    <input
+                        name="nom"
+                        placeholder="Ton pseudo"
+                        maxlength="30"
+                        required
+                    >
+
+                    <button type="submit">
+                        Se connecter
+                    </button>
+
+                </form>
+
+            </body>
+
+            </html>
+            """
+        )
+
+    # --------------------------------------------------------
+    # Nettoyage
+    # --------------------------------------------------------
+
+    nom = nom[:30]
+
+    if len(nom) < 2:
+
+        return HTMLResponse(
+            """
+            <h2>Erreur</h2>
+            <p>Le pseudo doit contenir au moins 2 caractères.</p>
+            <a href="/auth/guest">Retour</a>
+            """,
+            status_code=400
+        )
+
+    # --------------------------------------------------------
+    # Identifiant invité
+    # --------------------------------------------------------
+
     utilisateur = {
 
         "provider":
-        "guest",
+            "guest",
 
         "id":
-        "guest_" +
-        secrets.token_hex(8),
+            "guest_" + secrets.token_urlsafe(12),
 
         "nom":
-        "Invité_" +
-        secrets.token_hex(3),
+            nom,
 
         "email":
-        "",
+            "",
 
         "photo":
-        ""
+            ""
     }
 
     request.session[
@@ -555,38 +619,38 @@ async def api_me(
     return {
 
         "connecte":
-        True,
+            True,
 
         "id":
-        utilisateur.get(
-            "id"
-        ),
+            utilisateur.get(
+                "id"
+            ),
 
         "nom":
-        utilisateur.get(
-            "nom"
-        ),
+            utilisateur.get(
+                "nom"
+            ),
 
         "email":
-        utilisateur.get(
-            "email"
-        ),
+            utilisateur.get(
+                "email"
+            ),
 
         "provider":
-        utilisateur.get(
-            "provider"
-        ),
+            utilisateur.get(
+                "provider"
+            ),
 
         "photo":
-        utilisateur.get(
-            "photo",
-            ""
-        )
+            utilisateur.get(
+                "photo",
+                ""
+            )
     }
 
 
 # ============================================================
-# CREATION TOKEN WEBSOCKET
+# TOKEN WEBSOCKET
 # ============================================================
 
 @app.get(
@@ -603,15 +667,9 @@ async def creer_ws_token(
     if not utilisateur:
 
         return {
-
-            "connecte":
-            False,
-
-            "token":
-            None
+            "connecte": False,
+            "token": None
         }
-
-    nettoyer_tokens()
 
     token = secrets.token_urlsafe(
         32
@@ -620,62 +678,57 @@ async def creer_ws_token(
     sessions_ws[token] = {
 
         "id":
-        utilisateur.get(
-            "id"
-        ),
+            utilisateur.get(
+                "id"
+            ),
 
         "nom":
-        utilisateur.get(
-            "nom"
-        ),
+            utilisateur.get(
+                "nom"
+            ),
 
         "email":
-        utilisateur.get(
-            "email"
-        ),
+            utilisateur.get(
+                "email"
+            ),
 
         "provider":
-        utilisateur.get(
-            "provider"
-        ),
+            utilisateur.get(
+                "provider"
+            ),
 
         "photo":
-        utilisateur.get(
-            "photo",
-            ""
-        ),
+            utilisateur.get(
+                "photo",
+                ""
+            ),
 
         "created":
-        time.time()
+            time.time()
     }
 
     return {
 
         "connecte":
-        True,
+            True,
 
         "token":
-        token,
-
-        "id":
-        utilisateur.get(
-            "id"
-        ),
+            token,
 
         "nom":
-        utilisateur.get(
-            "nom"
-        ),
+            utilisateur.get(
+                "nom"
+            ),
 
         "email":
-        utilisateur.get(
-            "email"
-        ),
+            utilisateur.get(
+                "email"
+            ),
 
         "provider":
-        utilisateur.get(
-            "provider"
-        )
+            utilisateur.get(
+                "provider"
+            )
     }
 
 
@@ -689,9 +742,7 @@ def nettoyer_tokens():
 
     expires = []
 
-    for token, session in list(
-        sessions_ws.items()
-    ):
+    for token, session in sessions_ws.items():
 
         created = session.get(
             "created",
@@ -739,15 +790,9 @@ async def dashboard(
         request=request,
         name="dashboard.html",
         context={
-
-            "request":
-            request,
-
-            "utilisateur":
-            utilisateur,
-
-            "clients":
-            len(clients)
+            "request": request,
+            "utilisateur": utilisateur,
+            "clients": len(clients)
         }
     )
 
@@ -802,19 +847,19 @@ async def status():
     return {
 
         "application":
-        "BenPopup Server",
+            "BenPopup Server",
 
         "status":
-        "online",
+            "online",
 
         "clients":
-        len(clients),
+            len(clients),
 
         "utilisateurs":
-        len(utilisateurs),
+            len(utilisateurs),
 
         "sessions_websocket":
-        len(sessions_ws)
+            len(sessions_ws)
     }
 
 
@@ -834,9 +879,7 @@ async def websocket_endpoint(
     nom = None
 
     utilisateur_id = None
-
     utilisateur_email = None
-
     provider = None
 
     try:
@@ -861,10 +904,10 @@ async def websocket_endpoint(
                 json.dumps(
                     {
                         "type":
-                        "erreur",
+                            "erreur",
 
                         "message":
-                        "Connexion invalide."
+                            "Connexion invalide."
                     },
                     ensure_ascii=False
                 )
@@ -882,21 +925,16 @@ async def websocket_endpoint(
             "token"
         )
 
-        # ----------------------------------------------------
-        # POUR LA VERSION FINALE :
-        # TOKEN OBLIGATOIRE
-        # ----------------------------------------------------
-
         if not token:
 
             await websocket.send_text(
                 json.dumps(
                     {
                         "type":
-                        "erreur",
+                            "erreur",
 
                         "message":
-                        "Authentification requise."
+                            "Authentification requise."
                     },
                     ensure_ascii=False
                 )
@@ -926,10 +964,10 @@ async def websocket_endpoint(
                 json.dumps(
                     {
                         "type":
-                        "erreur",
+                            "erreur",
 
                         "message":
-                        "Session invalide ou expirée."
+                            "Session invalide ou expirée."
                     },
                     ensure_ascii=False
                 )
@@ -965,7 +1003,7 @@ async def websocket_endpoint(
             nom = "Utilisateur"
 
         # ====================================================
-        # TOKEN UTILISÉ
+        # TOKEN UTILISE
         # ====================================================
 
         sessions_ws.pop(
@@ -983,10 +1021,10 @@ async def websocket_endpoint(
                 json.dumps(
                     {
                         "type":
-                        "erreur",
+                            "erreur",
 
                         "message":
-                        "Ce compte est déjà connecté."
+                            "Ce compte est déjà connecté."
                     },
                     ensure_ascii=False
                 )
@@ -1003,16 +1041,16 @@ async def websocket_endpoint(
         clients[nom] = {
 
             "websocket":
-            websocket,
+                websocket,
 
             "id":
-            utilisateur_id,
+                utilisateur_id,
 
             "email":
-            utilisateur_email,
+                utilisateur_email,
 
             "provider":
-            provider
+                provider
         }
 
         print(
@@ -1038,29 +1076,27 @@ async def websocket_endpoint(
         await websocket.send_text(
             json.dumps(
                 {
-
                     "type":
-                    "connexion_ok",
+                        "connexion_ok",
 
                     "nom":
-                    nom,
+                        nom,
 
                     "id":
-                    utilisateur_id,
+                        utilisateur_id,
 
                     "email":
-                    utilisateur_email,
+                        utilisateur_email,
 
                     "provider":
-                    provider
-
+                        provider
                 },
                 ensure_ascii=False
             )
         )
 
         # ====================================================
-        # BOUCLE MESSAGES
+        # BOUCLE
         # ====================================================
 
         while True:
@@ -1069,28 +1105,9 @@ async def websocket_endpoint(
                 await websocket.receive_text()
             )
 
-            try:
-
-                data = json.loads(
-                    texte
-                )
-
-            except json.JSONDecodeError:
-
-                await websocket.send_text(
-                    json.dumps(
-                        {
-                            "type":
-                            "erreur",
-
-                            "message":
-                            "Format JSON invalide."
-                        },
-                        ensure_ascii=False
-                    )
-                )
-
-                continue
+            data = json.loads(
+                texte
+            )
 
             type_message = data.get(
                 "type"
@@ -1107,52 +1124,15 @@ async def websocket_endpoint(
                 )
 
                 message = data.get(
-                    "message"
-                )
-
-                # ---------------------------------------------
-                # L'EXPEDITEUR EST TOUJOURS LE COMPTE AUTHENTIFIE
-                # ---------------------------------------------
+                    "message",
+                    ""
+                ).strip()
 
                 expediteur = nom
 
                 if not destinataire:
 
-                    await websocket.send_text(
-                        json.dumps(
-                            {
-                                "type":
-                                "erreur",
-
-                                "message":
-                                "Destinataire manquant."
-                            },
-                            ensure_ascii=False
-                        )
-                    )
-
                     continue
-
-                if not message:
-
-                    await websocket.send_text(
-                        json.dumps(
-                            {
-                                "type":
-                                "erreur",
-
-                                "message":
-                                "Message vide."
-                            },
-                            ensure_ascii=False
-                        )
-                    )
-
-                    continue
-
-                message = str(
-                    message
-                ).strip()
 
                 if not message:
 
@@ -1164,10 +1144,10 @@ async def websocket_endpoint(
                         json.dumps(
                             {
                                 "type":
-                                "erreur",
+                                    "erreur",
 
                                 "message":
-                                "Message trop long."
+                                    "Message trop long."
                             },
                             ensure_ascii=False
                         )
@@ -1176,7 +1156,7 @@ async def websocket_endpoint(
                     continue
 
                 # ---------------------------------------------
-                # DESTINATAIRE
+                # DESTINATAIRE CONNECTE
                 # ---------------------------------------------
 
                 if destinataire in clients:
@@ -1189,97 +1169,64 @@ async def websocket_endpoint(
                         "websocket"
                     ]
 
-                    try:
-
-                        await websocket_cible.send_text(
-                            json.dumps(
-                                {
-
-                                    "type":
+                    await websocket_cible.send_text(
+                        json.dumps(
+                            {
+                                "type":
                                     "message",
 
-                                    "expediteur":
+                                "expediteur":
                                     expediteur,
 
-                                    "message":
+                                "message":
                                     message
-
-                                },
-                                ensure_ascii=False
-                            )
+                            },
+                            ensure_ascii=False
                         )
+                    )
 
-                        # -------------------------------------
-                        # CONFIRMATION EXPEDITEUR
-                        # -------------------------------------
+                    # -----------------------------------------
+                    # CONFIRMATION
+                    # -----------------------------------------
 
-                        await websocket.send_text(
-                            json.dumps(
-                                {
-
-                                    "type":
+                    await websocket.send_text(
+                        json.dumps(
+                            {
+                                "type":
                                     "message_envoye",
 
-                                    "destinataire":
-                                    destinataire,
-
-                                    "message":
-                                    message
-
-                                },
-                                ensure_ascii=False
-                            )
+                                "destinataire":
+                                    destinataire
+                            },
+                            ensure_ascii=False
                         )
+                    )
 
-                        print(
-                            f"[MESSAGE] "
-                            f"{expediteur} -> "
-                            f"{destinataire} : "
-                            f"{message}"
-                        )
-
-                    except Exception as e:
-
-                        print(
-                            "[ERREUR ENVOI]",
-                            e
-                        )
-
-                        await websocket.send_text(
-                            json.dumps(
-                                {
-
-                                    "type":
-                                    "erreur",
-
-                                    "message":
-                                    "Impossible de contacter le destinataire."
-
-                                },
-                                ensure_ascii=False
-                            )
-                        )
+                    print(
+                        f"[MESSAGE] "
+                        f"{expediteur} -> "
+                        f"{destinataire} : "
+                        f"{message}"
+                    )
 
                 else:
 
                     await websocket.send_text(
                         json.dumps(
                             {
-
                                 "type":
-                                "erreur",
+                                    "erreur",
 
                                 "message":
-                                f"{destinataire} "
-                                f"n'est pas connecté."
-
+                                    f"{destinataire} "
+                                    f"n'est pas connecté."
                             },
                             ensure_ascii=False
                         )
                     )
 
             # =================================================
-            # LISTE
+            # LISTE UTILISATEURS
             # =================================================
 
             elif type_message == "liste":
@@ -1291,13 +1238,11 @@ async def websocket_endpoint(
                 await websocket.send_text(
                     json.dumps(
                         {
-
                             "type":
-                            "liste",
+                                "liste",
 
                             "utilisateurs":
-                            liste
-
+                                liste
                         },
                         ensure_ascii=False
                     )
@@ -1313,101 +1258,9 @@ async def websocket_endpoint(
                     json.dumps(
                         {
                             "type":
-                            "pong"
+                                "pong"
                         }
                     )
-                )
-
-            # =================================================
-            # CHANGEMENT DE NOM
-            # =================================================
-
-            elif type_message == "changer_nom":
-
-                nouveau_nom = data.get(
-                    "nouveau_nom"
-                )
-
-                if not nouveau_nom:
-
-                    continue
-
-                nouveau_nom = str(
-                    nouveau_nom
-                ).strip()
-
-                if not nouveau_nom:
-
-                    continue
-
-                if len(nouveau_nom) > 30:
-
-                    await websocket.send_text(
-                        json.dumps(
-                            {
-
-                                "type":
-                                "erreur",
-
-                                "message":
-                                "Nom trop long."
-
-                            },
-                            ensure_ascii=False
-                        )
-                    )
-
-                    continue
-
-                if (
-                    nouveau_nom != nom
-                    and nouveau_nom in clients
-                ):
-
-                    await websocket.send_text(
-                        json.dumps(
-                            {
-
-                                "type":
-                                "erreur",
-
-                                "message":
-                                "Ce nom est déjà utilisé."
-
-                            },
-                            ensure_ascii=False
-                        )
-                    )
-
-                    continue
-
-                ancien_nom = nom
-
-                informations = clients.pop(
-                    ancien_nom
-                )
-
-                nom = nouveau_nom
-
-                clients[nom] = informations
-
-                await websocket.send_text(
-                    json.dumps(
-                        {
-
-                            "type":
-                            "nom_modifie",
-
-                            "nom":
-                            nom
-
-                        },
-                        ensure_ascii=False
-                    )
-                )
-
-                print(
-                    f"[NOM] {ancien_nom} -> {nom}"
                 )
 
     except WebSocketDisconnect:
@@ -1452,14 +1305,14 @@ async def about():
     return {
 
         "application":
-        "BenPopup",
+            "BenPopup",
 
         "createur":
-        "Abdallah Ben Ayed",
+            "Abdallah Ben Ayed",
 
         "email":
-        "thebenayed@gmail.com",
+            "thebenayed@gmail.com",
 
         "organisation":
-        "Institut Bassora"
+            "Institut Bassora"
     }

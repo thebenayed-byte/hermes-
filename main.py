@@ -106,8 +106,9 @@ if FACEBOOK_CLIENT_ID and FACEBOOK_CLIENT_SECRET:
         api_base_url=
             "https://graph.facebook.com/v24.0/",
 
-        client_kwargs={
-            "scope": "email,public_profile"
+       client_kwargs={
+    "scope": "public_profile"
+}
         }
     )
 

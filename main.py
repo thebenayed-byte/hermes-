@@ -6,7 +6,6 @@ from authlib.integrations.starlette_client import OAuth
 import json
 import os
 
-
 # ============================================================
 # BENPOPUP SERVER
 # ============================================================
@@ -16,14 +15,12 @@ import os
 # Institut Bassora
 # ============================================================
 
-
 app = FastAPI(
     title="BenPopup Server"
 )
 
-
 # ============================================================
-# SESSIONS
+# SESSION
 # ============================================================
 
 SESSION_SECRET = os.environ.get(
@@ -36,7 +33,6 @@ app.add_middleware(
     secret_key=SESSION_SECRET
 )
 
-
 # ============================================================
 # TEMPLATES
 # ============================================================
@@ -45,12 +41,15 @@ templates = Jinja2Templates(
     directory="templates"
 )
 
-
 # ============================================================
-# GOOGLE OAUTH
+# OAUTH
 # ============================================================
 
 oauth = OAuth()
+
+# ============================================================
+# GOOGLE
+# ============================================================
 
 GOOGLE_CLIENT_ID = os.environ.get(
     "GOOGLE_CLIENT_ID"
@@ -59,7 +58,6 @@ GOOGLE_CLIENT_ID = os.environ.get(
 GOOGLE_CLIENT_SECRET = os.environ.get(
     "GOOGLE_CLIENT_SECRET"
 )
-
 
 if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
 
@@ -70,30 +68,60 @@ if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
 
         client_secret=GOOGLE_CLIENT_SECRET,
 
-        server_metadata_url=(
-            "https://accounts.google.com/"
-            ".well-known/openid-configuration"
-        ),
+        server_metadata_url=
+            "https://accounts.google.com/.well-known/openid-configuration",
 
         client_kwargs={
             "scope": "openid email profile"
         }
     )
 
+# ============================================================
+# FACEBOOK
+# ============================================================
+
+FACEBOOK_CLIENT_ID = os.environ.get(
+    "FACEBOOK_CLIENT_ID"
+)
+
+FACEBOOK_CLIENT_SECRET = os.environ.get(
+    "FACEBOOK_CLIENT_SECRET"
+)
+
+if FACEBOOK_CLIENT_ID and FACEBOOK_CLIENT_SECRET:
+
+    oauth.register(
+        name="facebook",
+
+        client_id=FACEBOOK_CLIENT_ID,
+
+        client_secret=FACEBOOK_CLIENT_SECRET,
+
+        authorize_url=
+            "https://www.facebook.com/v24.0/dialog/oauth",
+
+        access_token_url=
+            "https://graph.facebook.com/v24.0/oauth/access_token",
+
+        api_base_url=
+            "https://graph.facebook.com/v24.0/",
+
+        client_kwargs={
+            "scope": "email,public_profile"
+        }
+    )
 
 # ============================================================
-# CLIENTS CONNECTÉS
+# CLIENTS WINDOWS CONNECTÉS
 # ============================================================
 
 clients = {}
 
-
 # ============================================================
-# UTILISATEURS CONNECTÉS AU SITE
+# UTILISATEURS WEB CONNECTÉS
 # ============================================================
 
 utilisateurs = {}
-
 
 # ============================================================
 # PAGE PRINCIPALE
@@ -113,15 +141,13 @@ async def accueil(request: Request):
         request=request,
         name="index.html",
         context={
-            "request": request,
             "utilisateur": utilisateur,
             "clients": len(clients)
         }
     )
 
-
 # ============================================================
-# PAGE CONNEXION
+# PAGE LOGIN
 # ============================================================
 
 @app.get(
@@ -144,57 +170,57 @@ async def login(request: Request):
         request=request,
         name="login.html",
         context={
-            "request": request,
-            "google_active": bool(
-                GOOGLE_CLIENT_ID
-                and GOOGLE_CLIENT_SECRET
-            )
+            "google_active":
+                bool(
+                    GOOGLE_CLIENT_ID
+                    and
+                    GOOGLE_CLIENT_SECRET
+                ),
+
+            "facebook_active":
+                bool(
+                    FACEBOOK_CLIENT_ID
+                    and
+                    FACEBOOK_CLIENT_SECRET
+                )
         }
     )
 
-
 # ============================================================
-# CONNEXION GOOGLE
+# GOOGLE LOGIN
 # ============================================================
 
 @app.get(
     "/auth/google"
 )
-async def auth_google(
-    request: Request
-):
+async def auth_google(request: Request):
 
-    if (
-        not GOOGLE_CLIENT_ID
-        or not GOOGLE_CLIENT_SECRET
-    ):
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
 
         return HTMLResponse(
             """
-            <h1>
-                Google OAuth n'est pas configuré.
-            </h1>
-
-            <p>
-                Ajoute GOOGLE_CLIENT_ID et
-                GOOGLE_CLIENT_SECRET dans Render.
-            </p>
+            <h1>Google n'est pas configuré.</h1>
+            <p>Vérifie les variables Google dans Render.</p>
+            <a href="/login">Retour</a>
             """,
             status_code=500
         )
+
+    google = oauth.create_client(
+        "google"
+    )
 
     redirect_uri = request.url_for(
         "auth_google_callback"
     )
 
-    return await oauth.google.authorize_redirect(
+    return await google.authorize_redirect(
         request,
         redirect_uri
     )
 
-
 # ============================================================
-# CALLBACK GOOGLE
+# GOOGLE CALLBACK
 # ============================================================
 
 @app.get(
@@ -207,7 +233,11 @@ async def auth_google_callback(
 
     try:
 
-        token = await oauth.google.authorize_access_token(
+        google = oauth.create_client(
+            "google"
+        )
+
+        token = await google.authorize_access_token(
             request
         )
 
@@ -217,7 +247,7 @@ async def auth_google_callback(
 
         if not user_info:
 
-            user_info = await oauth.google.userinfo(
+            user_info = await google.userinfo(
                 token=token
             )
 
@@ -237,10 +267,17 @@ async def auth_google_callback(
         )
 
         utilisateur = {
+
             "provider": "google",
-            "id": user_info.get("sub"),
+
+            "id": user_info.get(
+                "sub"
+            ),
+
             "nom": nom,
+
             "email": email,
+
             "photo": photo
         }
 
@@ -248,13 +285,10 @@ async def auth_google_callback(
             "utilisateur"
         ] = utilisateur
 
-        utilisateurs[
-            email
-        ] = utilisateur
+        utilisateurs[email] = utilisateur
 
         print(
-            f"[GOOGLE] "
-            f"{nom} ({email}) connecté"
+            f"[GOOGLE] {email} connecté"
         )
 
         return RedirectResponse(
@@ -270,24 +304,191 @@ async def auth_google_callback(
 
         return HTMLResponse(
             f"""
-            <h1>
-                Erreur de connexion Google
-            </h1>
+            <h1>Erreur Google</h1>
 
-            <p>
-                {e}
-            </p>
+            <p>{str(e)}</p>
 
             <a href="/login">
-                Retour à la connexion
+                Retour
             </a>
             """,
             status_code=500
         )
 
+# ============================================================
+# FACEBOOK LOGIN
+# ============================================================
+
+@app.get(
+    "/auth/facebook"
+)
+async def auth_facebook(request: Request):
+
+    if not FACEBOOK_CLIENT_ID or not FACEBOOK_CLIENT_SECRET:
+
+        return HTMLResponse(
+            """
+            <h1>Facebook n'est pas configuré.</h1>
+
+            <p>
+            Vérifie FACEBOOK_CLIENT_ID et
+            FACEBOOK_CLIENT_SECRET dans Render.
+            </p>
+
+            <a href="/login">
+                Retour
+            </a>
+            """,
+            status_code=500
+        )
+
+    facebook = oauth.create_client(
+        "facebook"
+    )
+
+    redirect_uri = request.url_for(
+        "auth_facebook_callback"
+    )
+
+    return await facebook.authorize_redirect(
+        request,
+        redirect_uri
+    )
 
 # ============================================================
-# TABLEAU DE BORD
+# FACEBOOK CALLBACK
+# ============================================================
+
+@app.get(
+    "/auth/facebook/callback",
+    name="auth_facebook_callback"
+)
+async def auth_facebook_callback(
+    request: Request
+):
+
+    try:
+
+        facebook = oauth.create_client(
+            "facebook"
+        )
+
+        token = await facebook.authorize_access_token(
+            request
+        )
+
+        # ----------------------------------------------------
+        # RÉCUPÉRATION DES INFORMATIONS FACEBOOK
+        # ----------------------------------------------------
+
+        response = await facebook.get(
+            "me",
+            token=token,
+            params={
+                "fields":
+                    "id,name,email,picture.type(large)"
+            }
+        )
+
+        user_info = response.json()
+
+        facebook_id = user_info.get(
+            "id"
+        )
+
+        nom = user_info.get(
+            "name",
+            "Utilisateur Facebook"
+        )
+
+        email = user_info.get(
+            "email",
+            ""
+        )
+
+        photo = ""
+
+        picture = user_info.get(
+            "picture"
+        )
+
+        if picture:
+
+            picture_data = picture.get(
+                "data"
+            )
+
+            if picture_data:
+
+                photo = picture_data.get(
+                    "url",
+                    ""
+                )
+
+        # ----------------------------------------------------
+        # IDENTIFIANT DE SESSION
+        # ----------------------------------------------------
+
+        identifiant = email
+
+        if not identifiant:
+
+            identifiant = (
+                "facebook_"
+                + str(facebook_id)
+            )
+
+        utilisateur = {
+
+            "provider": "facebook",
+
+            "id": facebook_id,
+
+            "nom": nom,
+
+            "email": email,
+
+            "photo": photo
+        }
+
+        request.session[
+            "utilisateur"
+        ] = utilisateur
+
+        utilisateurs[
+            identifiant
+        ] = utilisateur
+
+        print(
+            f"[FACEBOOK] {nom} connecté"
+        )
+
+        return RedirectResponse(
+            "/dashboard"
+        )
+
+    except Exception as e:
+
+        print(
+            "[FACEBOOK ERROR]",
+            e
+        )
+
+        return HTMLResponse(
+            f"""
+            <h1>Erreur Facebook</h1>
+
+            <p>{str(e)}</p>
+
+            <a href="/login">
+                Retour
+            </a>
+            """,
+            status_code=500
+        )
+
+# ============================================================
+# DASHBOARD
 # ============================================================
 
 @app.get(
@@ -312,15 +513,13 @@ async def dashboard(
         request=request,
         name="dashboard.html",
         context={
-            "request": request,
             "utilisateur": utilisateur,
             "clients": len(clients)
         }
     )
 
-
 # ============================================================
-# DECONNEXION
+# LOGOUT
 # ============================================================
 
 @app.get(
@@ -336,9 +535,8 @@ async def logout(
         "/"
     )
 
-
 # ============================================================
-# API INFORMATIONS SERVEUR
+# STATUS
 # ============================================================
 
 @app.get(
@@ -347,12 +545,19 @@ async def logout(
 async def status():
 
     return {
-        "application": "BenPopup Server",
-        "status": "online",
-        "clients": len(clients),
-        "utilisateurs": len(utilisateurs)
-    }
 
+        "application":
+            "BenPopup Server",
+
+        "status":
+            "online",
+
+        "clients":
+            len(clients),
+
+        "utilisateurs":
+            len(utilisateurs)
+    }
 
 # ============================================================
 # WEBSOCKET
@@ -372,10 +577,12 @@ async def websocket_endpoint(
     try:
 
         # ----------------------------------------------------
-        # PREMIER MESSAGE = CONNEXION
+        # PREMIER MESSAGE
         # ----------------------------------------------------
 
-        premier_message = await websocket.receive_text()
+        premier_message = (
+            await websocket.receive_text()
+        )
 
         data = json.loads(
             premier_message
@@ -399,7 +606,7 @@ async def websocket_endpoint(
             nom = "Utilisateur"
 
         # ----------------------------------------------------
-        # NOM DEJA UTILISE
+        # NOM DÉJÀ UTILISÉ
         # ----------------------------------------------------
 
         if nom in clients:
@@ -407,7 +614,9 @@ async def websocket_endpoint(
             await websocket.send_text(
                 json.dumps(
                     {
-                        "type": "erreur",
+                        "type":
+                            "erreur",
+
                         "message":
                             "Ce nom est déjà utilisé."
                     },
@@ -423,17 +632,15 @@ async def websocket_endpoint(
         # AJOUT CLIENT
         # ----------------------------------------------------
 
-        clients[
-            nom
-        ] = websocket
+        clients[nom] = websocket
 
         print(
             f"[+] {nom} connecté"
         )
 
         print(
-            f"    Utilisateurs : "
-            f"{list(clients.keys())}"
+            "    Utilisateurs :",
+            list(clients.keys())
         )
 
         # ----------------------------------------------------
@@ -443,8 +650,11 @@ async def websocket_endpoint(
         await websocket.send_text(
             json.dumps(
                 {
-                    "type": "connexion_ok",
-                    "nom": nom
+                    "type":
+                        "connexion_ok",
+
+                    "nom":
+                        nom
                 },
                 ensure_ascii=False
             )
@@ -456,7 +666,9 @@ async def websocket_endpoint(
 
         while True:
 
-            texte = await websocket.receive_text()
+            texte = (
+                await websocket.receive_text()
+            )
 
             data = json.loads(
                 texte
@@ -494,7 +706,7 @@ async def websocket_endpoint(
                     continue
 
                 # ---------------------------------------------
-                # DESTINATAIRE CONNECTÉ ?
+                # DESTINATAIRE CONNECTÉ
                 # ---------------------------------------------
 
                 if destinataire in clients:
@@ -506,9 +718,12 @@ async def websocket_endpoint(
                     await cible.send_text(
                         json.dumps(
                             {
-                                "type": "message",
+                                "type":
+                                    "message",
+
                                 "expediteur":
                                     expediteur,
+
                                 "message":
                                     message
                             },
@@ -528,7 +743,9 @@ async def websocket_endpoint(
                     await websocket.send_text(
                         json.dumps(
                             {
-                                "type": "erreur",
+                                "type":
+                                    "erreur",
+
                                 "message":
                                     f"{destinataire} "
                                     f"n'est pas connecté."
@@ -538,7 +755,7 @@ async def websocket_endpoint(
                     )
 
             # =================================================
-            # LISTE UTILISATEURS
+            # LISTE
             # =================================================
 
             elif type_message == "liste":
@@ -550,7 +767,9 @@ async def websocket_endpoint(
                 await websocket.send_text(
                     json.dumps(
                         {
-                            "type": "liste",
+                            "type":
+                                "liste",
+
                             "utilisateurs":
                                 liste
                         },
@@ -578,7 +797,9 @@ async def websocket_endpoint(
                     await websocket.send_text(
                         json.dumps(
                             {
-                                "type": "erreur",
+                                "type":
+                                    "erreur",
+
                                 "message":
                                     "Nom trop long."
                             },
@@ -597,7 +818,9 @@ async def websocket_endpoint(
                     await websocket.send_text(
                         json.dumps(
                             {
-                                "type": "erreur",
+                                "type":
+                                    "erreur",
+
                                 "message":
                                     "Ce nom est déjà utilisé."
                             },
@@ -630,6 +853,7 @@ async def websocket_endpoint(
                         {
                             "type":
                                 "nom_modifie",
+
                             "nom":
                                 nom
                         },
@@ -638,7 +862,7 @@ async def websocket_endpoint(
                 )
 
     # ========================================================
-    # DECONNEXION
+    # DÉCONNEXION
     # ========================================================
 
     except WebSocketDisconnect:
@@ -666,6 +890,6 @@ async def websocket_endpoint(
             )
 
         print(
-            f"    Utilisateurs : "
-            f"{list(clients.keys())}"
+            "    Utilisateurs :",
+            list(clients.keys())
         )

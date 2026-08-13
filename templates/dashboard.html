@@ -14,170 +14,62 @@
 
     <style>
 
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
             margin: 0;
+        }
 
-            min-height: 100vh;
-
-            background:
-                #0f172a;
-
-            font-family:
-                Arial,
-                sans-serif;
-
+        header {
+            background: #111827;
             color: white;
+            padding: 18px;
         }
 
-        .header {
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            padding: 18px 25px;
-
-            background:
-                #1e293b;
-
-            border-bottom:
-                1px solid #334155;
-        }
-
-        .brand {
-
-            font-size: 22px;
-
-            font-weight: bold;
-        }
-
-        .user {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-        }
-
-        .photo {
-
-            width: 42px;
-
-            height: 42px;
-
-            border-radius: 50%;
-
-            object-fit: cover;
-
-            background: #475569;
-        }
-
-        .logout {
-
-            margin-left: 15px;
-
-            color: white;
-
-            text-decoration: none;
-
-            background: #ef4444;
-
-            padding: 9px 14px;
-
-            border-radius: 8px;
-        }
-
-        .container {
-
-            max-width: 1000px;
-
-            margin: 40px auto;
-
+        main {
+            max-width: 900px;
+            margin: 25px auto;
             padding: 20px;
         }
 
-        .welcome {
-
-            background: #1e293b;
-
-            padding: 25px;
-
+        .card {
+            background: white;
+            padding: 20px;
             border-radius: 15px;
-
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
-        .welcome h1 {
-
-            margin-top: 0;
+        .messages {
+            height: 350px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            background: #fafafa;
         }
 
-        .provider {
+        input {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
 
-            display: inline-block;
-
-            padding: 6px 12px;
-
-            border-radius: 20px;
-
-            background: #334155;
-
-            margin-top: 8px;
-
-            text-transform: capitalize;
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #2563eb;
+            color: white;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
         }
 
         .status {
-
-            background: #064e3b;
-
-            border: 1px solid #10b981;
-
-            padding: 15px;
-
-            border-radius: 10px;
-
-            margin-bottom: 25px;
-        }
-
-        .message-box {
-
-            background: #1e293b;
-
-            border-radius: 15px;
-
-            padding: 25px;
-        }
-
-        .message-box h2 {
-
-            margin-top: 0;
-        }
-
-        .online {
-
-            color: #34d399;
-
             font-weight: bold;
-        }
-
-        .signature {
-
-            text-align: center;
-
-            color: #64748b;
-
-            margin-top: 50px;
-
-            font-size: 13px;
         }
 
     </style>
@@ -186,162 +78,342 @@
 
 <body>
 
+<header>
 
-<header class="header">
+    <strong>💬 BenPopup</strong>
 
-    <div class="brand">
+    <span style="float:right">
 
-        💬 BenPopup
+        {{ utilisateur.nom }}
 
-    </div>
-
-
-    <div class="user">
-
-        {% if utilisateur.photo %}
-
-        <img
-            class="photo"
-            src="{{ utilisateur.photo }}"
-            alt="Photo"
-        >
-
-        {% else %}
-
-        <div class="photo"></div>
-
-        {% endif %}
-
-
-        <span>
-
-            {{ utilisateur.nom }}
-
-        </span>
-
+        |
 
         <a
-            class="logout"
             href="/logout"
+            style="color:white"
         >
             Déconnexion
         </a>
 
-    </div>
+    </span>
 
 </header>
 
 
-<div class="container">
+<main>
 
-
-    <div class="welcome">
-
-        <h1>
-
-            Bienvenue
-            {{ utilisateur.nom }} 👋
-
-        </h1>
-
-
-        <p>
-
-            Tu es connecté à BenPopup.
-
-        </p>
-
-
-        <div class="provider">
-
-            Connexion :
-            {{ utilisateur.provider }}
-
-        </div>
-
-    </div>
-
-
-    <div class="status">
-
-        🟢 Serveur :
-
-        <span class="online">
-            EN LIGNE
-        </span>
-
-        <br><br>
-
-        💻 Clients Windows connectés :
-
-        <strong>
-            {{ clients }}
-        </strong>
-
-    </div>
-
-
-    <div class="message-box">
+    <div class="card">
 
         <h2>
-            💬 Messagerie BenPopup
+            Bienvenue {{ utilisateur.nom }} 👋
         </h2>
 
         <p>
-            La connexion WebSocket du serveur
-            est disponible.
+            Connexion :
+            <strong>
+                {{ utilisateur.provider }}
+            </strong>
+        </p>
+
+        <p class="status">
+            🟢 Serveur : EN LIGNE
         </p>
 
         <p>
-            La version Windows de BenPopup peut
-            continuer à utiliser :
+            Clients :
+            <strong>
+                {{ clients }}
+            </strong>
         </p>
 
-        <ul>
-
-            <li>
-                connexion WebSocket
-            </li>
-
-            <li>
-                messages instantanés
-            </li>
-
-            <li>
-                notifications popup
-            </li>
-
-            <li>
-                réponses directes
-            </li>
-
-        </ul>
-
     </div>
 
 
-    <div class="signature">
+    <div class="card">
 
-        BenPopup
+        <h2>💬 Messagerie</h2>
 
-        <br>
+        <p id="statut">
+            Connexion...
+        </p>
 
-        Créé par
-        <strong>
-            Abdallah Ben Ayed
-        </strong>
+        <div
+            id="messages"
+            class="messages"
+        ></div>
 
-        <br>
 
-        thebenayed@gmail.com
+        <input
+            id="destinataire"
+            placeholder="Nom du destinataire"
+        >
 
-        <br>
 
-        Institut Bassora
+        <input
+            id="message"
+            placeholder="Écrire un message..."
+        >
+
+
+        <button
+            onclick="envoyer()"
+        >
+            📨 Envoyer
+        </button>
 
     </div>
 
-</div>
+</main>
+
+
+<script>
+
+let socket = null;
+
+let nomUtilisateur =
+    "{{ utilisateur.nom }}";
+
+
+async function connecter() {
+
+    const response =
+        await fetch(
+            "/api/ws-token"
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (!data.connecte) {
+
+        document.getElementById(
+            "statut"
+        ).innerText =
+            "🔴 Non connecté";
+
+        return;
+    }
+
+
+    socket =
+        new WebSocket(
+            "wss://" +
+            window.location.host +
+            "/ws"
+        );
+
+
+    socket.onopen = function() {
+
+        document.getElementById(
+            "statut"
+        ).innerText =
+            "🟢 Connecté";
+
+
+        socket.send(
+            JSON.stringify({
+
+                type:
+                    "connexion",
+
+                token:
+                    data.token
+
+            })
+        );
+    };
+
+
+    socket.onmessage =
+        function(event) {
+
+            const data =
+                JSON.parse(
+                    event.data
+                );
+
+
+            if (
+                data.type ===
+                "message"
+            ) {
+
+                ajouterMessage(
+                    "💬 " +
+                    data.expediteur +
+                    " : " +
+                    data.message
+                );
+            }
+
+
+            else if (
+                data.type ===
+                "erreur"
+            ) {
+
+                ajouterMessage(
+                    "⚠️ " +
+                    data.message
+                );
+            }
+
+
+            else if (
+                data.type ===
+                "connexion_ok"
+            ) {
+
+                nomUtilisateur =
+                    data.nom;
+
+                ajouterMessage(
+                    "🟢 Connecté en tant que " +
+                    data.nom
+                );
+            }
+
+        };
+
+
+    socket.onclose =
+        function() {
+
+            document.getElementById(
+                "statut"
+            ).innerText =
+                "🔴 Déconnecté";
+        };
+
+
+    socket.onerror =
+        function() {
+
+            document.getElementById(
+                "statut"
+            ).innerText =
+                "🔴 Erreur";
+        };
+
+}
+
+
+function envoyer() {
+
+    if (
+        !socket ||
+        socket.readyState !==
+        WebSocket.OPEN
+    ) {
+
+        alert(
+            "Vous n'êtes pas connecté."
+        );
+
+        return;
+    }
+
+
+    const destinataire =
+        document.getElementById(
+            "destinataire"
+        ).value.trim();
+
+
+    const message =
+        document.getElementById(
+            "message"
+        ).value.trim();
+
+
+    if (!destinataire) {
+
+        alert(
+            "Indique le destinataire."
+        );
+
+        return;
+    }
+
+
+    if (!message) {
+
+        return;
+    }
+
+
+    socket.send(
+        JSON.stringify({
+
+            type:
+                "message",
+
+            destinataire:
+                destinataire,
+
+            message:
+                message
+
+        })
+    );
+
+
+    ajouterMessage(
+        "🟢 Moi → " +
+        destinataire +
+        " : " +
+        message
+    );
+
+
+    document.getElementById(
+        "message"
+    ).value = "";
+
+}
+
+
+function ajouterMessage(
+    texte
+) {
+
+    const zone =
+        document.getElementById(
+            "messages"
+        );
+
+
+    const ligne =
+        document.createElement(
+            "div"
+        );
+
+
+    ligne.style.marginBottom =
+        "10px";
+
+
+    ligne.textContent =
+        texte;
+
+
+    zone.appendChild(
+        ligne
+    );
+
+
+    zone.scrollTop =
+        zone.scrollHeight;
+
+}
+
+
+connecter();
+
+</script>
 
 </body>
 

@@ -5,40 +5,232 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Connexion - BenPopup</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0f172a,
+                    #1e293b
+                );
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            color: white;
+        }
+
+        .container {
+
+            width: 400px;
+
+            max-width: 90%;
+
+            background: white;
+
+            color: #111827;
+
+            padding: 35px;
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 20px 50px
+                rgba(0,0,0,0.3);
+
+            text-align: center;
+        }
+
+        h1 {
+
+            margin-top: 0;
+
+            font-size: 28px;
+        }
+
+        .description {
+
+            color: #6b7280;
+
+            margin-bottom: 30px;
+        }
+
+        .button {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            width: 100%;
+
+            padding: 14px;
+
+            margin: 12px 0;
+
+            border-radius: 10px;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            transition: 0.2s;
+        }
+
+        .button:hover {
+
+            transform:
+                translateY(-2px);
+        }
+
+        .google {
+
+            background: #4285f4;
+
+            color: white;
+        }
+
+        .facebook {
+
+            background: #1877f2;
+
+            color: white;
+        }
+
+        .disabled {
+
+            background: #e5e7eb;
+
+            color: #9ca3af;
+
+            cursor: not-allowed;
+        }
+
+        .icon {
+
+            font-size: 20px;
+
+            margin-right: 10px;
+        }
+
+        .back {
+
+            display: inline-block;
+
+            margin-top: 20px;
+
+            color: #64748b;
+
+            text-decoration: none;
+        }
+
+        .back:hover {
+
+            text-decoration: underline;
+        }
+
+    </style>
 
 </head>
 
 <body>
 
-    <h1>Connexion à BenPopup</h1>
+<div class="container">
 
-    <p>
+    <h1>
+        Connexion à BenPopup
+    </h1>
+
+    <p class="description">
         Connecte-toi pour accéder à ton compte.
     </p>
 
+
     {% if google_active %}
 
-        <a href="/auth/google">
-            🔵 Continuer avec Google
-        </a>
+    <a
+        class="button google"
+        href="/auth/google"
+    >
+
+        <span class="icon">
+            G
+        </span>
+
+        Continuer avec Google
+
+    </a>
 
     {% else %}
 
-        <p>
-            Google n'est pas encore configuré.
-        </p>
+    <div class="button disabled">
+
+        Google n'est pas configuré
+
+    </div>
 
     {% endif %}
 
-    <br><br>
 
-    <a href="/">
-        Retour
+    {% if facebook_active %}
+
+    <a
+        class="button facebook"
+        href="/auth/facebook"
+    >
+
+        <span class="icon">
+            f
+        </span>
+
+        Continuer avec Facebook
+
     </a>
+
+    {% else %}
+
+    <div class="button disabled">
+
+        Facebook n'est pas configuré
+
+    </div>
+
+    {% endif %}
+
+
+    <a
+        class="back"
+        href="/"
+    >
+        ← Retour
+    </a>
+
+</div>
 
 </body>
 
